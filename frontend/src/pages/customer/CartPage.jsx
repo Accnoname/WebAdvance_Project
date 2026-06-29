@@ -1,5 +1,6 @@
 import { useCartStore } from '../../store/cartStore';
-import { Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
+import { OrderService } from '../../services/order.service';
+import { Trash2, Plus, Minus, ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -7,7 +8,8 @@ const CartPage = () => {
   const { items, tableId, updateQuantity, updateNote, removeItem, clearCart, getTotalAmount } = useCartStore();
   const navigate = useNavigate();
 
-  const handleCheckout = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleCheckout = async () => {
     if (!tableId) {
       toast.error('Vui lòng chọn bàn hoặc quét mã QR tại bàn trước khi đặt món!');
       return;
@@ -16,11 +18,30 @@ const CartPage = () => {
       toast.error('Giỏ hàng trống!');
       return;
     }
-    // Ở Tuần 3, chúng ta sẽ gọi API POST /orders ở đây.
-    // Hiện tại chỉ mock thành công và clear giỏ hàng.
-    toast.success('Đặt món thành công! Đơn hàng đang được nhà bếp chuẩn bị.');
-    clearCart();
-    navigate('/my-orders');
+    
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        tableId,
+        items: items.map(i => ({
+          menuItemId: i.menuItem._id,
+          quantity: i.quantity,
+          note: i.note
+        })),
+        note: '' // Optional general note
+      };
+
+      const res = await OrderService.create(payload);
+      if (res.success) {
+        toast.success('Đặt món thành công! Đơn hàng đang được nhà bếp chuẩn bị.');
+        clearCart();
+        navigate('/my-orders');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt món');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (items.length === 0) {
@@ -145,10 +166,17 @@ const CartPage = () => {
           
           <button
             onClick={handleCheckout}
-            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-95 group"
+            disabled={isSubmitting}
+            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Đặt Món Ngay
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Đặt Món Ngay
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
           </button>
         </div>
       </div>

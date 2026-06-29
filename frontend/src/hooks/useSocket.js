@@ -1,32 +1,43 @@
 import { useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { useAuthStore } from '../store/authStore';
 
-const useSocket = () => {
-  const socket = useRef(null);
-  const { token } = useAuthStore();
+const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+const useSocket = (room = null) => {
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    if (!token) return;
+    // Connect to Socket.IO
+    socketRef.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+      autoConnect: true
+    });
 
-    socket.current = io('/', { auth: { token } });
+    socketRef.current.on('connect', () => {
+      console.log('🔗 Đã kết nối Socket:', socketRef.current.id);
+      
+      if (room) {
+        if (room.startsWith('table:')) {
+          const tableId = room.split(':')[1];
+          socketRef.current.emit('join-table', tableId);
+        } else {
+          socketRef.current.emit(`join-${room}`);
+        }
+      }
+    });
 
-    socket.current.on('connect', () => {
-      console.log('Socket connected:', socket.current.id);
+    socketRef.current.on('disconnect', () => {
+      console.log('🔴 Đã ngắt kết nối Socket');
     });
 
     return () => {
-      socket.current?.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
-  }, [token]);
+  }, [room]);
 
-  const joinRoom = (room) => socket.current?.emit(room);
-
-  const on = (event, callback) => socket.current?.on(event, callback);
-
-  const off = (event) => socket.current?.off(event);
-
-  return { socket: socket.current, joinRoom, on, off };
+  return socketRef.current;
 };
 
 export default useSocket;

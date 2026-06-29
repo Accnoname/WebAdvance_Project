@@ -17,7 +17,7 @@ import PaymentPage from '../pages/customer/PaymentPage';
 // Staff Pages
 import StaffDashboard from '../pages/staff/DashboardPage';
 import TablesPage from '../pages/staff/TablesPage';
-import StaffOrdersPage from '../pages/staff/OrdersPage';
+import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
 import KitchenPage from '../pages/staff/KitchenPage';
 
 // Manager Pages
