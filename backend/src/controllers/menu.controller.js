@@ -24,7 +24,7 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const data = await MenuService.update(req.params.id, req.body);
+    const data = await MenuService.update(req.params.id, req.body, req.file);
     res.status(200).json(sendSuccess('Cập nhật món thành công', data));
   } catch (error) { next(error); }
 };

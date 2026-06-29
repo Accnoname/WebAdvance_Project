@@ -1,10 +1,18 @@
 import api from './api';
 
-const tableService = {
-  getAll: () => api.get('/tables'),
-  getById: (id) => api.get(`/tables/${id}`),
-  create: (data) => api.post('/tables', data),
-  updateStatus: (id, status) => api.patch(`/tables/${id}/status`, { status }),
+export const TableService = {
+  getAll: async () => {
+    const response = await api.get('/tables');
+    return response.data;
+  },
+  
+  create: async (data) => {
+    const response = await api.post('/tables', data);
+    return response.data;
+  },
+  
+  updateStatus: async (id, status) => {
+    const response = await api.patch(`/tables/${id}/status`, { status });
+    return response.data;
+  }
 };
-
-export default tableService;
