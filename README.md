@@ -5,13 +5,6 @@
 
 ---
 
-## 👥 Phân Chia Vai Trò
-
-| | Dev A (Backend) | Dev B (Frontend) |
-|---|---|---|
-| **Phụ trách** | Express API, MongoDB, Socket.IO, VNPay | React, Vite, Tailwind, Zustand, UI/UX |
-| **Branch chính** | `backend/*` | `frontend/*` |
-
 ---
 
 ## 📅 Kế Hoạch Theo Tuần
