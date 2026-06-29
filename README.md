@@ -1,128 +1,103 @@
 # 🍽️ Restaurant Management System
 
-> **Full-Stack**: Express.js + MongoDB + React.js + Vite + Tailwind CSS  
-> **Team**: 2 người | **Thời gian**: 5 tuần
+> A comprehensive Restaurant Management System developed as a final school project. It features real-time order tracking, role-based access control, and integrated online payments to deliver a complete dining management solution.
 
 ---
 
-## 👥 Phân Chia Vai Trò
+## ✨ Key Features
 
-| | Dev A (Backend) | Dev B (Frontend) |
-|---|---|---|
-| **Phụ trách** | Express API, MongoDB, Socket.IO, VNPay | React, Vite, Tailwind, Zustand, UI/UX |
-| **Branch chính** | `backend/*` | `frontend/*` |
-
----
-
-## 📅 Kế Hoạch Theo Tuần
-
-| Tuần | File | Nội dung |
-|------|------|----------|
-| 1 | [WEEK1 — Auth & Setup](./docs/WEEK1_Auth_Setup.md) | Khởi tạo dự án, Auth, JWT |
-| 2 | [WEEK2 — Menu & Table](./docs/WEEK2_Menu_Table.md) | CRUD Menu, Quản lý bàn, QR code |
-| 3 | [WEEK3 — Order & Realtime](./docs/WEEK3_Order_Realtime.md) | Đặt món, Socket.IO real-time |
-| 4 | [WEEK4 — Payment VNPay](./docs/WEEK4_Payment.md) | Thanh toán VNPay + offline |
-| 5 | [WEEK5 — Report & Polish](./docs/WEEK5_Report_Polish.md) | Báo cáo, validation, hoàn thiện |
+- **🔐 Role-Based Access Control (RBAC):** Secure authentication via JWT for Customers, Staff, and Managers.
+- **⚡ Real-time Updates:** Instant order synchronization between customers and the kitchen using Socket.IO.
+- **📱 Digital Menu & QR Ordering:** Customers can scan QR codes at their table to view the menu and place orders directly.
+- **💳 Payment Integration:** Supports offline payments (cash/transfer) and online secure transactions via VNPay Sandbox.
+- **📊 Manager Dashboard:** Visualizes revenue, popular dishes, and table utilization using responsive charts (Recharts).
+- **🛡️ Data Security & Validation:** Request validation using Joi, secure password hashing with bcrypt, and comprehensive error handling.
 
 ---
 
-## 🌿 Git Branch Convention
+## 🛠️ Technology Stack
 
-```
-main                    ← production (chỉ merge khi hoàn thành tuần)
-├── develop             ← integration branch (merge PR vào đây)
-├── backend/week1-auth  ← Dev A làm
-└── frontend/week1-auth ← Dev B làm
-```
+### Backend
+- **Framework:** Node.js, Express.js
+- **Database:** MongoDB (Mongoose ODM)
+- **Real-time:** Socket.IO
+- **Security & Auth:** JWT, bcryptjs, Express Rate Limit
+- **Uploads:** Multer (Local storage)
 
-### Quy tắc đặt tên branch
-```
-backend/<tuần>-<tên-feature>
-frontend/<tuần>-<tên-feature>
-
-Ví dụ:
-  backend/week1-auth
-  frontend/week1-login-page
-  backend/week2-menu-crud
-  frontend/week2-menu-ui
-```
+### Frontend
+- **Framework:** React 18, Vite
+- **Styling:** Tailwind CSS v3
+- **State Management:** Zustand
+- **Routing:** React Router v6
+- **Charts:** Recharts
+- **API Client:** Axios (with interceptors)
 
 ---
 
-## 📝 Commit Message Convention
+## 🚀 Quick Start
 
-```
-<type>(<scope>): <mô tả ngắn gọn>
+### 1. Prerequisites
+- Node.js (v18+)
+- MongoDB (Local or Atlas URL)
 
-type:
-  feat     → thêm tính năng mới
-  fix      → sửa bug
-  refactor → cải thiện code không đổi tính năng
-  docs     → cập nhật tài liệu
-  style    → format code, CSS
-  test     → thêm test
-
-Ví dụ:
-  feat(auth): add JWT middleware verifyToken
-  fix(order): fix totalAmount calculation
-  feat(ui): implement LoginPage with react-hook-form
-  docs(week2): update API contract for menu endpoints
-```
-
----
-
-## 🔄 Quy Trình Làm Việc
-
-```
-1. Kéo task mới từ file WEEK*.md
-2. Tạo branch mới từ develop
-3. Code + test local
-4. Push branch → tạo Pull Request vào develop
-5. Người còn lại review PR (ít nhất 1 comment/approval)
-6. Merge sau khi approved
-```
-
----
-
-## 🚀 Khởi Động Project
-
+### 2. Installation
+Clone the repository and install dependencies for both frontend and backend:
 ```bash
-# Clone và cài dependencies
-git clone <repo-url>
+git clone https://github.com/Accnoname/WebAdvance_Project.git
+cd WebAdvance_Project
+
+# Install all dependencies (Monorepo root script)
 npm run install:all
-
-# Chạy development (cả backend + frontend)
-npm run dev
-
-# Backend: http://localhost:3000
-# Frontend: http://localhost:5173
 ```
+
+### 3. Environment Setup
+Configure the environment variables in `backend/.env` (refer to `backend/.env.example`):
+```env
+PORT=3000
+MONGO_URI=mongodb://127.0.0.1:27017/restaurant_db
+JWT_SECRET=your_jwt_secret_key
+CLIENT_URL=http://localhost:5173
+VNPAY_TMN_CODE=your_sandbox_code
+VNPAY_HASH_SECRET=your_sandbox_secret
+```
+
+### 4. Run the Application
+Start both the backend server and frontend development server concurrently:
+```bash
+npm run dev
+```
+- **Backend API:** `http://localhost:3000`
+- **Frontend App:** `http://localhost:5173`
 
 ---
 
-## 📁 Cấu Trúc Thư Mục
+## 📁 Project Architecture
+
+This repository uses a Monorepo structure, separating concerns cleanly between the API server and the Client UI.
 
 ```
 restaurant-management/
-├── backend/            # Express API
-├── frontend/           # React App
-├── docs/               # Tài liệu kế hoạch theo tuần
-│   ├── WEEK1_Auth_Setup.md
-│   ├── WEEK2_Menu_Table.md
-│   ├── WEEK3_Order_Realtime.md
-│   ├── WEEK4_Payment.md
-│   └── WEEK5_Report_Polish.md
-├── .agents/
-│   └── AGENTS.md       # Luật code cho AI agent
-├── IMPLEMENTATION_PLAN.md
-└── README.md
+├── backend/            # Express API Server (MVC + Repository pattern)
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── models/
+│   │   ├── repositories/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── sockets/
+│   └── uploads/        # Local image storage
+├── frontend/           # React SPA
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── router/
+│   │   ├── services/
+│   │   └── store/
+└── docs/               # Technical documentation
 ```
 
 ---
 
-## 📌 Links Quan Trọng
-
-- 📋 [Implementation Plan đầy đủ](./IMPLEMENTATION_PLAN.md)
-- 🤖 [Coding Rules & Conventions](./.agents/AGENTS.md)
-- 🌐 API Base URL: `http://localhost:3000/api/v1`
-- 💻 Frontend URL: `http://localhost:5173`
+*Developed for an Academic Presentation | 2026*
