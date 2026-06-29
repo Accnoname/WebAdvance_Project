@@ -5,20 +5,22 @@ import { useAuthStore } from '../store/authStore';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 
-// Layout
-import MainLayout from '../components/layout/MainLayout';
+// Layouts
+import CustomerLayout from '../components/layout/CustomerLayout';
+import StaffLayout from '../components/layout/StaffLayout';
+import ManagerLayout from '../components/layout/ManagerLayout';
 
 // Customer Pages
+import LandingPage from '../pages/customer/LandingPage';
 import MenuPage from '../pages/customer/MenuPage';
 import CartPage from '../pages/customer/CartPage';
 import MyOrdersPage from '../pages/customer/MyOrdersPage';
 import PaymentPage from '../pages/customer/PaymentPage';
 
 // Staff Pages
-import StaffDashboard from '../pages/staff/DashboardPage';
+import KitchenPage from '../pages/staff/KitchenPage';
 import TablesPage from '../pages/staff/TablesPage';
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
-import KitchenPage from '../pages/staff/KitchenPage';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/DashboardPage';
@@ -31,7 +33,12 @@ import ReportPage from '../pages/manager/ReportPage';
 const PrivateRoute = ({ children, roles }) => {
   const { user, token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user?.role)) return <Navigate to="/" replace />;
+  if (roles && !roles.includes(user?.role)) {
+    // Redirect based on role if they hit a wall
+    if (user.role === 'quan_ly') return <Navigate to="/manager" replace />;
+    if (user.role === 'nhan_vien') return <Navigate to="/staff/kitchen" replace />;
+    return <Navigate to="/" replace />;
+  }
   return children;
 };
 
@@ -40,30 +47,41 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
 
-  // App Routes (With Layout)
+  // Customer Routes (Dark Premium)
   {
     path: '/',
-    element: <MainLayout />,
+    element: <CustomerLayout />,
     children: [
-      // Customer routes
-      { index: true, element: <MenuPage /> },
+      { index: true, element: <LandingPage /> },
       { path: 'menu', element: <MenuPage /> },
-      { path: 'cart', element: <PrivateRoute><CartPage /></PrivateRoute> },
-      { path: 'my-orders', element: <PrivateRoute><MyOrdersPage /></PrivateRoute> },
-      { path: 'payment/:orderId', element: <PrivateRoute><PaymentPage /></PrivateRoute> },
+      { path: 'cart', element: <PrivateRoute roles={['khach_hang']}><CartPage /></PrivateRoute> },
+      { path: 'my-orders', element: <PrivateRoute roles={['khach_hang']}><MyOrdersPage /></PrivateRoute> },
+      { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang']}><PaymentPage /></PrivateRoute> },
+    ]
+  },
 
-      // Staff routes
-      { path: 'staff', element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><StaffDashboard /></PrivateRoute> },
-      { path: 'staff/tables', element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><TablesPage /></PrivateRoute> },
-      { path: 'staff/orders', element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><StaffOrdersPage /></PrivateRoute> },
-      { path: 'staff/kitchen', element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><KitchenPage /></PrivateRoute> },
+  // Staff Routes (Dark, High Contrast)
+  {
+    path: '/staff',
+    element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><StaffLayout /></PrivateRoute>,
+    children: [
+      { index: true, element: <Navigate to="/staff/kitchen" replace /> },
+      { path: 'kitchen', element: <KitchenPage /> },
+      { path: 'tables', element: <TablesPage /> },
+      { path: 'orders', element: <StaffOrdersPage /> },
+    ]
+  },
 
-      // Manager routes
-      { path: 'manager', element: <PrivateRoute roles={['quan_ly']}><ManagerDashboard /></PrivateRoute> },
-      { path: 'manager/menu', element: <PrivateRoute roles={['quan_ly']}><MenuManagePage /></PrivateRoute> },
-      { path: 'manager/tables', element: <PrivateRoute roles={['quan_ly']}><TableManagePage /></PrivateRoute> },
-      { path: 'manager/staff', element: <PrivateRoute roles={['quan_ly']}><StaffManagePage /></PrivateRoute> },
-      { path: 'manager/reports', element: <PrivateRoute roles={['quan_ly']}><ReportPage /></PrivateRoute> },
+  // Manager Routes (Executive Dashboard)
+  {
+    path: '/manager',
+    element: <PrivateRoute roles={['quan_ly']}><ManagerLayout /></PrivateRoute>,
+    children: [
+      { index: true, element: <ManagerDashboard /> },
+      { path: 'menu', element: <MenuManagePage /> },
+      { path: 'tables', element: <TableManagePage /> },
+      { path: 'staff', element: <StaffManagePage /> },
+      { path: 'reports', element: <ReportPage /> },
     ]
   }
 ]);

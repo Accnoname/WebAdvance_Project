@@ -31,7 +31,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API Routes
 app.use('/api/v1', routes);
 
-// Health check
+// Health check & Root
+app.get('/', (req, res) => res.send('Restaurant API is running!'));
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString() }));
 
 // Error handling

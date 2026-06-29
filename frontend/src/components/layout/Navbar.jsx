@@ -1,64 +1,99 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { LogOut, User as UserIcon, Menu as MenuIcon } from 'lucide-react';
-import { useState } from 'react';
+import { LogOut, User as UserIcon, Menu as MenuIcon, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const isLandingPage = location.pathname === '/';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-50 font-body">
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      scrolled || !isLandingPage
+        ? 'bg-[#0f0a05]/90 backdrop-blur-md border-b border-[#2d1f0a] py-3 shadow-xl' 
+        : 'bg-transparent py-5'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
+        <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-display font-bold text-xl">
+            <Link to="/" className="flex-shrink-0 flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-display font-bold text-xl shadow-lg shadow-primary-500/30">
                 R
               </div>
-              <span className="font-display font-bold text-2xl text-stone-900 tracking-tight hidden sm:block">
-                Restaurant
+              <span className="font-display font-bold text-2xl text-[#f5e6c8] tracking-widest hidden sm:block">
+                RESTAURANT
               </span>
             </Link>
+            
             {/* Desktop Menu */}
             <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
-              <Link to="/menu" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-700 hover:text-primary-600 transition-colors">
+              <Link to="/menu" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
                 Thực đơn
               </Link>
-              {user && (
-                <Link to="/my-orders" className="inline-flex items-center px-1 pt-1 text-sm font-medium text-stone-700 hover:text-primary-600 transition-colors">
-                  Đơn hàng của tôi
+              {user && user.role === 'khach_hang' && (
+                <Link to="/my-orders" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
+                  Đơn hàng
                 </Link>
               )}
             </div>
           </div>
 
-          <div className="hidden sm:flex sm:items-center sm:gap-4">
+          <div className="hidden sm:flex sm:items-center sm:gap-6">
+            {user && user.role === 'khach_hang' && (
+              <Link to="/cart" className="relative text-[#a89070] hover:text-[#d4a85a] transition-colors">
+                <ShoppingCart className="w-6 h-6" />
+              </Link>
+            )}
+
             {user ? (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-stone-100 rounded-full border border-stone-200">
-                  <UserIcon className="w-4 h-4 text-stone-500" />
-                  <span className="text-sm font-medium text-stone-700">{user.name}</span>
+                <div className="flex items-center gap-2 px-4 py-2 bg-[#1a1208]/80 rounded-full border border-[#2d1f0a]">
+                  <UserIcon className="w-4 h-4 text-[#d4a85a]" />
+                  <span className="text-sm font-bold text-[#f5e6c8]">{user.name}</span>
                 </div>
+                {user.role === 'quan_ly' && (
+                  <Link to="/manager" className="text-sm font-bold text-primary-500 hover:text-primary-400">
+                    Dashboard
+                  </Link>
+                )}
+                {user.role === 'nhan_vien' && (
+                  <Link to="/staff" className="text-sm font-bold text-primary-500 hover:text-primary-400">
+                    Staff Portal
+                  </Link>
+                )}
                 <button
                   onClick={logout}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-stone-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  className="flex items-center gap-2 text-sm font-bold text-rose-400 hover:text-rose-300 transition-colors"
                 >
-                  <LogOut className="w-4 h-4" />
                   Đăng xuất
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Link
                   to="/login"
-                  className="px-5 py-2.5 text-sm font-medium text-stone-700 hover:text-primary-600 transition-colors"
+                  className="text-sm font-bold text-[#f5e6c8] hover:text-[#d4a85a] transition-colors uppercase tracking-wider"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-all shadow-sm shadow-primary-500/20 active:scale-95"
+                  className="px-6 py-2.5 text-sm font-bold text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all shadow-lg shadow-primary-500/20 active:scale-95 uppercase tracking-wider"
                 >
                   Đăng ký
                 </Link>
@@ -70,7 +105,7 @@ const Navbar = () => {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-stone-400 hover:text-stone-500 hover:bg-stone-100 focus:outline-none"
+              className="p-2 rounded-md text-[#a89070] hover:text-[#f5e6c8] focus:outline-none"
             >
               <MenuIcon className="h-6 w-6" />
             </button>
@@ -80,46 +115,51 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="sm:hidden border-t border-stone-200 bg-white absolute w-full left-0">
+        <div className="sm:hidden border-t border-[#2d1f0a] bg-[#0f0a05] absolute w-full left-0 shadow-2xl">
           <div className="pt-2 pb-3 space-y-1">
-            <Link to="/menu" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-stone-50 hover:border-stone-300">
+            <Link to="/menu" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
               Thực đơn
             </Link>
-            {user && (
-              <Link to="/my-orders" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-stone-600 hover:bg-stone-50 hover:border-stone-300">
-                Đơn hàng của tôi
-              </Link>
+            {user && user.role === 'khach_hang' && (
+              <>
+                <Link to="/cart" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
+                  Giỏ hàng
+                </Link>
+                <Link to="/my-orders" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
+                  Đơn hàng của tôi
+                </Link>
+              </>
             )}
           </div>
-          <div className="pt-4 pb-3 border-t border-stone-200">
+          <div className="pt-4 pb-4 border-t border-[#2d1f0a]">
             {user ? (
               <>
                 <div className="flex items-center px-4">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                      <UserIcon className="w-5 h-5 text-primary-600" />
+                    <div className="w-10 h-10 rounded-full bg-[#1a1208] border border-[#2d1f0a] flex items-center justify-center">
+                      <UserIcon className="w-5 h-5 text-[#d4a85a]" />
                     </div>
                   </div>
                   <div className="ml-3">
-                    <div className="text-base font-medium text-stone-800">{user.name}</div>
-                    <div className="text-sm font-medium text-stone-500">{user.email}</div>
+                    <div className="text-base font-bold text-[#f5e6c8]">{user.name}</div>
+                    <div className="text-sm font-medium text-[#a89070]">{user.email}</div>
                   </div>
                 </div>
-                <div className="mt-3 space-y-1">
+                <div className="mt-4 space-y-1">
                   <button
                     onClick={logout}
-                    className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-rose-600 hover:bg-rose-50"
+                    className="block w-full text-left pl-4 pr-4 py-3 text-base font-bold text-rose-400 hover:bg-[#1a1208]"
                   >
                     Đăng xuất
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-2 px-4">
-                <Link to="/login" className="block text-center w-full px-4 py-2 text-base font-medium text-stone-700 bg-stone-100 rounded-xl">
+              <div className="flex flex-col gap-3 px-4">
+                <Link to="/login" className="block text-center w-full px-4 py-3 text-base font-bold text-[#f5e6c8] bg-[#1a1208] rounded-full border border-[#2d1f0a]">
                   Đăng nhập
                 </Link>
-                <Link to="/register" className="block text-center w-full px-4 py-2 text-base font-medium text-white bg-primary-600 rounded-xl">
+                <Link to="/register" className="block text-center w-full px-4 py-3 text-base font-bold text-white bg-primary-500 rounded-full">
                   Đăng ký
                 </Link>
               </div>

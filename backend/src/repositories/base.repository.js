@@ -4,15 +4,17 @@ const createBaseRepository = (Model) => ({
     Model.find(filter)
       .skip(options.skip || 0)
       .limit(options.limit || 10)
-      .exec(callback);
+      .then(docs => callback(null, docs))
+      .catch(err => callback(err));
   },
 
   findById: (id, callback) => {
-    Model.findById(id).exec((err, doc) => {
-      if (err) return callback(err);
-      if (!doc) return callback(new Error('Không tìm thấy tài liệu'));
-      callback(null, doc);
-    });
+    Model.findById(id)
+      .then(doc => {
+        if (!doc) return callback(new Error('Không tìm thấy tài liệu'));
+        callback(null, doc);
+      })
+      .catch(err => callback(err));
   },
 
   create: async (data) => Model.create(data),

@@ -7,13 +7,29 @@
 
 ## 📋 Thông Tin Dự Án
 
-- **Tên**: Restaurant Management System
+- **Tên**: Restaurant Management System — All-in-One Integrated F&B Platform
+- **Loại hệ thống**: Kết hợp giữa E-commerce Storefront (mặt tiền bóng bẩy) và Mini-ERP/POS (cỗ máy vận hành)
 - **Stack**: Node.js + Express + MongoDB (Backend) | React 18 + Vite + Tailwind (Frontend)
 - **Pattern**: MVC + Repository Pattern + Service Layer
 - **Auth**: JWT (stateless)
 - **Real-time**: Socket.IO
-- **Thanh toán**: VNPay + Offline
+- **Thanh toán**: VNPay + Offline (tiền mặt/chuyển khoản)
 - **Ảnh**: Lưu local với Multer (`backend/uploads/menu/`)
+
+### Phân Quyền 3 Roles (KHÔNG thêm role mới khi chưa được yêu cầu)
+
+```
+khach_hang  →  Landing Page (no login) | Menu | Cart | My Orders | Payment
+nhan_vien   →  /staff/kitchen | /staff/tables | /staff/orders
+              (kiêm: Bếp + Phục vụ + Điều phối + Thu ngân tiền mặt)
+quan_ly     →  /manager/... — Toàn quyền: Dashboard, Menu, Bàn, Nhân viên, Báo cáo
+              (kiêm: Quản lý vận hành + Tài chính + Kiểm toán)
+```
+
+### File Thiết Kế & Tính Năng (BẮT BUỘC ĐỌC)
+> Trước khi viết bất kỳ component nào: đọc `.agents/rule_frontend.md`
+> Để biết tính năng của từng Role, đọc: `docs/FEATURE_SPEC.md`
+> Để biết các quyết định luồng dữ liệu (bếp, bàn, khuyến mãi): đọc `docs/ARCHITECTURE_DECISIONS.md`
 
 ---
 
@@ -512,6 +528,31 @@ items: [{
 
 ## 🎨 Frontend — React
 
+> **⚠️ BẮT BUỘC**: Trước khi viết bất kỳ component/page nào, AI phải đọc file **`.agents/rule_frontend.md`** — đây là "Hiến pháp" thiết kế Frontend của dự án.
+
+### Nguyên tắc thiết kế theo 3 Personas
+Hệ thống có **3 personas** người dùng — mỗi persona có bộ quy chuẩn riêng trong `rule_frontend.md`:
+
+```
+👤 KHÁCH HÀNG (Customer Storefront):
+  → Tone: Glossy, Premium, Dark-theme sang trọng
+  → Font: Playfair Display + Lato
+  → Cơ chế: Storytelling Scroll + Intersection Observer animations
+  → Landing Page 4 Section: Hero → Story → Signature Menu → CTA
+
+👨‍🍳 BẾP & NHÂN VIÊN (Kitchen Interface):
+  → Tone: Tối giản, Dark mode, Tương phản cao
+  → Font: DM Sans (chữ to, rõ)
+  → Quy tắc: Nút MIN 56px, Tên món MIN 20px, Số lượng MIN 32px font-black
+  → Màu trạng thái: Đỏ=Chờ, Vàng=Đang nấu, Xanh=Xong
+
+📊 QUẢN LÝ (Management Dashboard):
+  → Tone: Data-rich, Executive Analytics
+  → Font: Syne (heading) + DM Mono (số liệu) + Inter (bảng)
+  → Layout: KPI Cards → Realtime Status → Management Actions
+```
+
+### Quy tắc code React cơ bản
 - **LUÔN** dùng arrow function cho component:
   ```jsx
   // ✅
@@ -527,6 +568,14 @@ items: [{
 - Format tiền VND: `formatCurrency()` từ `utils/formatCurrency.js`
 - Format ngày: `formatDate()` từ `utils/formatDate.js`
 - Status labels: dùng `STATUS_LABELS` từ `utils/constants.js`
+- **LUÔN** dùng `useInView` hook (từ `hooks/useInView.js`) cho scroll animations ở Landing Page
+
+### Fonts cấm dùng
+```
+❌ Arial, Helvetica, system-ui
+❌ Space Grotesk (overused AI-gen)
+❌ Roboto thuần
+```
 
 ---
 

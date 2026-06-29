@@ -7,7 +7,9 @@ const TableRepository = {
   findByStatus: async (status) => Table.find({ status }),
 
   findByTableNumber: (tableNumber, callback) => {
-    Table.findOne({ tableNumber }).exec(callback);
+    Table.findOne({ tableNumber })
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
   },
 
   updateStatus: async (id, status, orderId = null) =>

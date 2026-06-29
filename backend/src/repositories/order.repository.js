@@ -9,7 +9,8 @@ const OrderRepository = {
       .populate('table')
       .populate('customer', '-password')
       .populate('items.menuItem')
-      .exec(callback);
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
   },
 
   findByCustomer: async (customerId) =>

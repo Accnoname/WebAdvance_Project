@@ -5,7 +5,9 @@ const UserRepository = {
   ...createBaseRepository(User),
 
   findByEmail: (email, callback) => {
-    User.findOne({ email }).exec(callback);
+    User.findOne({ email })
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
   },
 
   findByEmailWithPassword: async (email) =>
