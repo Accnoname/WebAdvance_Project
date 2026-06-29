@@ -4,13 +4,52 @@ const { generateToken } = require('../utils/jwt.util');
 const { AppError } = require('../middlewares/error.middleware');
 
 const register = async (userData) => {
-  // TODO: Implement
-  throw new AppError('Chưa implement', 501);
+  // 1. Kiểm tra email đã tồn tại
+  const existingUser = await UserRepository.findByEmail(userData.email);
+  if (existingUser) {
+    throw new AppError('Email đã được sử dụng', 409);
+  }
+
+  // 2. Hash password
+  const hashedPassword = await hashPassword(userData.password);
+
+  // 3. Tạo user mới
+  const newUser = await UserRepository.create({
+    ...userData,
+    password: hashedPassword,
+    // Mặc định role là khach_hang, trừ khi có logic tạo staff riêng
+    role: 'khach_hang',
+  });
+
+  // 4. Tạo token
+  const token = generateToken({
+    _id: newUser._id,
+    role: newUser.role,
+  });
+
+  return { user: newUser, token };
 };
 
 const login = async (email, password) => {
-  // TODO: Implement
-  throw new AppError('Chưa implement', 501);
+  // 1. Tìm user theo email kèm mật khẩu
+  const user = await UserRepository.findByEmailWithPassword(email);
+  if (!user) {
+    throw new AppError('Email hoặc mật khẩu không đúng', 401);
+  }
+
+  // 2. So sánh mật khẩu
+  const isMatch = await comparePassword(password, user.password);
+  if (!isMatch) {
+    throw new AppError('Email hoặc mật khẩu không đúng', 401);
+  }
+
+  // 3. Tạo token
+  const token = generateToken({
+    _id: user._id,
+    role: user.role,
+  });
+
+  return { user, token };
 };
 
 module.exports = { register, login };
