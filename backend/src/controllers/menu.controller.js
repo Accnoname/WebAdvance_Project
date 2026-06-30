@@ -1,10 +1,10 @@
 const MenuService = require('../services/menu.service');
-const { sendSuccess } = require('../utils/response.util');
+const { sendSuccess, sendPaginated } = require('../utils/response.util');
 
 const getAll = async (req, res, next) => {
   try {
-    const data = await MenuService.getAll(req.query);
-    res.status(200).json(sendSuccess('Danh sách menu', data));
+    const result = await MenuService.getAll(req.query);
+    res.status(200).json(sendPaginated('Danh sách menu', result.data, result));
   } catch (error) { next(error); }
 };
 
