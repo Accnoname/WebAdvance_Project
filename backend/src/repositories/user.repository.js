@@ -10,8 +10,11 @@ const UserRepository = {
       .catch(err => callback(err));
   },
 
-  findByEmailWithPassword: async (email) =>
+  findByEmailWithPassword: (email, callback) => {
     User.findOne({ email }).select('+password')
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
+  }
 };
 
 module.exports = UserRepository;
