@@ -1,29 +1,57 @@
-# 🔐 Danh Sách Tài Khoản Đăng Nhập
+# 🔐 Danh Sách Tài Khoản Đăng Nhập (Test Accounts)
 
-Danh sách tài khoản hiện có trong hệ thống theo từng vai trò (Role-Based Access Control).
+> **Cập nhật: 30/06/2026**  
+> Để tạo lại toàn bộ tài khoản trong DB, chạy lệnh:  
+> ```bash
+> cd backend && node src/seeds/seed.js
+> ```
+> ⚠️ Lệnh này sẽ **xóa toàn bộ** User, Table, MenuItem hiện tại và tạo lại từ đầu.
 
 ---
 
 ## 1. 👑 Quản Lý (Manager)
-- **Role:** `quan_ly`
-- **Username / Email:** `admin@restaurant.com`
-- **Password:** `Hieu1410@.A`
+
+| Trường | Giá trị |
+|--------|---------|
+| **Email** | `admin@restaurant.com` |
+| **Password** | `Hieu1410@.A` |
+| **Role** | `quan_ly` |
+| **Tên** | Nguyễn Văn Admin |
+| **SĐT** | 0901234567 |
+
 - **Vào trang:** `/manager` → Dashboard Quản Lý
-- **Quyền hạn:** Toàn quyền — Dashboard, quản lý menu, bàn, nhân viên, báo cáo doanh thu, kiểm toán.
+- **Quyền hạn:** Toàn quyền — Dashboard, Menu, Bàn, Nhân viên, Báo cáo, Kiểm toán, Mã giảm giá.
+
+---
 
 ## 2. 👨‍🍳 Nhân Viên (Staff)
-- **Role:** `nhan_vien`
-- **Username / Email:** `staff@restaurant.com`
-- **Password:** `123456`
-- **Vào trang:** `/staff/kitchen` → Màn Hình Bếp
+
+| Trường | Giá trị |
+|--------|---------|
+| **Email** | `staff@restaurant.com` |
+| **Password** | `Staff@123` |
+| **Role** | `nhan_vien` |
+| **Tên** | Trần Thị Nhân Viên |
+| **SĐT** | 0909876543 |
+
+- **Vào trang:** `/staff/kitchen` → Màn Hình Bếp (mặc định)
+- **Các màn hình khác:** `/staff/tables` (Sơ đồ bàn), `/staff/orders` (Điều phối & Thu ngân)
 - **Quyền hạn:** Kiêm nhiệm Bếp + Phục vụ + Điều phối + Thu ngân tiền mặt.
 
+---
+
 ## 3. 👤 Khách Hàng (Customer)
-- **Role:** `khach_hang`
-- **Username / Email:** `khach@gmail.com`
-- **Password:** `123456`
+
+| Trường | Giá trị |
+|--------|---------|
+| **Email** | `khach@gmail.com` |
+| **Password** | `Khach@123` |
+| **Role** | `khach_hang` |
+| **Tên** | Lê Văn Khách |
+| **SĐT** | 0912345678 |
+
 - **Vào trang:** `/` → Landing Page → Menu → Đặt món
-- **Quyền hạn:** Xem menu, thêm vào giỏ hàng, đặt món, xem đơn hàng của bản thân, thanh toán.
+- **Quyền hạn:** Xem menu, giỏ hàng, đặt món, theo dõi đơn real-time, thanh toán (VNPay / tiền mặt).
 
 ---
 
@@ -38,7 +66,8 @@ Danh sách tài khoản hiện có trong hệ thống theo từng vai trò (Role
 ---
 
 ## 💡 Lưu ý
+
 - Đăng ký mới từ `/register` → mặc định được gán role `khach_hang`.
-- Để tạo tài khoản `nhan_vien`, dùng chức năng "Tạo nhân viên" trong `/manager/staff`.
+- Để tạo tài khoản `nhan_vien`, dùng chức năng **"Tạo nhân viên"** trong `/manager/staff`.
 - Để đổi role thủ công: vào MongoDB Compass → collection `users` → sửa trường `role`.
-- Mật khẩu `quan_ly` đã được đổi thành `Hieu1410@.A` — **không** dùng `123456` cho tài khoản này.
+- Password mới của nhân viên test đã đổi từ `123456` thành `Staff@123` (đủ mạnh hơn).

@@ -1,6 +1,8 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User.model');
 const Table = require('../models/Table.model');
 const MenuItem = require('../models/MenuItem.model');
 const QRCode = require('qrcode');
@@ -11,11 +13,46 @@ const seedData = async () => {
     console.log('✅ Đã kết nối MongoDB');
 
     // 1. Xóa dữ liệu cũ
+    await User.deleteMany({});
     await Table.deleteMany({});
     await MenuItem.deleteMany({});
     console.log('🧹 Đã xóa dữ liệu cũ');
 
-    // 2. Tạo dữ liệu Bàn
+    // 2. Tạo tài khoản test (3 roles)
+    const SALT_ROUNDS = 12;
+    const users = [
+      {
+        name:     'Nguyễn Văn Admin',
+        email:    'admin@restaurant.com',
+        password: await bcrypt.hash('Hieu1410@.A', SALT_ROUNDS),
+        role:     'quan_ly',
+        phone:    '0901234567',
+        isActive: true,
+      },
+      {
+        name:     'Trần Thị Nhân Viên',
+        email:    'staff@restaurant.com',
+        password: await bcrypt.hash('Staff@123', SALT_ROUNDS),
+        role:     'nhan_vien',
+        phone:    '0909876543',
+        isActive: true,
+      },
+      {
+        name:     'Lê Văn Khách',
+        email:    'khach@gmail.com',
+        password: await bcrypt.hash('Khach@123', SALT_ROUNDS),
+        role:     'khach_hang',
+        phone:    '0912345678',
+        isActive: true,
+      },
+    ];
+    await User.insertMany(users);
+    console.log(`✅ Đã tạo ${users.length} tài khoản test`);
+    console.log('   👑 Quản lý  : admin@restaurant.com / Hieu1410@.A');
+    console.log('   👨‍🍳 Nhân viên: staff@restaurant.com / Staff@123');
+    console.log('   👤 Khách hàng: khach@gmail.com / Khach@123');
+
+    // 3. Tạo dữ liệu Bàn
     const tables = [];
     for (let i = 1; i <= 10; i++) {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -37,7 +74,7 @@ const seedData = async () => {
     await Table.insertMany(tables);
     console.log(`✅ Đã tạo ${tables.length} bàn ăn`);
 
-    // 3. Tạo dữ liệu Món ăn
+    // 4. Tạo dữ liệu Món ăn
     const menuItems = [
       {
         name: 'Gỏi Cuốn Tôm Thịt',
