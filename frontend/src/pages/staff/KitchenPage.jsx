@@ -3,6 +3,7 @@ import { OrderService } from '../../services/order.service';
 import useSocket from '../../hooks/useSocket';
 import { ChefHat, Clock, AlertCircle, CheckCircle2, LayoutGrid, Layers, Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
+import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const STATUS_LABELS = {
   cho_xac_nhan: { text: 'Chờ nấu', color: 'bg-rose-50 text-rose-700 border-rose-200' },
@@ -11,6 +12,7 @@ const STATUS_LABELS = {
 };
 
 const KitchenPage = () => {
+  useDocumentTitle('Nhà Bếp');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('by-table'); // 'by-table' or 'aggregated'

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import useInView from '../../hooks/useInView';
+import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { ArrowRight, Star, Clock, MapPin, Phone, Leaf, Flame, Snowflake, Sun, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
@@ -7,7 +8,7 @@ import { useState, useEffect, useMemo } from 'react';
 const ALL_SEASONS = [
   {
     key: 'xuan', label: 'Mùa Xuân', months: [1, 2, 3],
-    icon: Leaf, accent: '#6ee7b7', bg: 'from-emerald-950 via-[#0a1f15] to-[#0f0a05]',
+    icon: Leaf, accent: '#6ee7b7', bg: 'from-[#0f0a05] via-emerald-950/30 to-[#0f0a05]',
     tagline: 'Tháng 2 — 4 | Tươi mát, thanh đạm',
     dishes: [
       { name: 'Gỏi Ngó Sen Tôm Càng', desc: 'Ngó sen giòn sần sật kết hợp tôm càng sông tươi, sốt mè rang đặc biệt.', img: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=600&auto=format&fit=crop' },
@@ -17,7 +18,7 @@ const ALL_SEASONS = [
   },
   {
     key: 'ha', label: 'Mùa Hạ', months: [4, 5, 6],
-    icon: Sun, accent: '#fcd34d', bg: 'from-amber-950 via-[#1f1500] to-[#0f0a05]',
+    icon: Sun, accent: '#fcd34d', bg: 'from-[#0f0a05] via-amber-950/30 to-[#0f0a05]',
     tagline: 'Tháng 5 — 7 | Mát lạnh, sảng khoái',
     dishes: [
       { name: 'Gỏi Xoài Xanh Tôm Thịt', desc: 'Xoài xanh chua giòn trộn cùng tôm thịt, đậu phộng rang, nước mắm chua ngọt đậm đà.', img: 'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?q=80&w=600&auto=format&fit=crop' },
@@ -27,7 +28,7 @@ const ALL_SEASONS = [
   },
   {
     key: 'thu', label: 'Mùa Thu', months: [7, 8, 9],
-    icon: Flame, accent: '#fb923c', bg: 'from-orange-950 via-[#1a0e00] to-[#0f0a05]',
+    icon: Flame, accent: '#fb923c', bg: 'from-[#0f0a05] via-orange-950/30 to-[#0f0a05]',
     tagline: 'Tháng 8 — 10 | Ấm nồng, bổ dưỡng',
     dishes: [
       { name: 'Gà Tiềm Hạt Sen Kỷ Tử', desc: 'Gà ta tiềm thuốc bắc nhẹ, hạt sen bùi, kỷ tử ngọt, nước tiềm vàng óng.', img: 'https://images.unsplash.com/photo-1547592180-85f173990554?q=80&w=600&auto=format&fit=crop' },
@@ -37,7 +38,7 @@ const ALL_SEASONS = [
   },
   {
     key: 'dong', label: 'Mùa Đông', months: [10, 11, 12],
-    icon: Snowflake, accent: '#93c5fd', bg: 'from-blue-950 via-[#050d1a] to-[#0f0a05]',
+    icon: Snowflake, accent: '#93c5fd', bg: 'from-[#0f0a05] via-blue-950/30 to-[#0f0a05]',
     tagline: 'Tháng 11 — 1 | Ủ ấm, đậm vị',
     dishes: [
       { name: 'Lẩu Mắm Cá Linh Bông Súng', desc: 'Lẩu mắm đặc sản miền Tây, cá linh đồng mùa nước nổi, bông súng tím giòn.', img: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?q=80&w=600&auto=format&fit=crop' },
@@ -170,7 +171,6 @@ const SeasonalMenuSection = () => {
 };
 
 // Animated Section Wrapper
-
 const AnimatedSection = ({ children, className = '' }) => {
   const [ref, isInView] = useInView(0.15);
   return (
@@ -186,6 +186,7 @@ const AnimatedSection = ({ children, className = '' }) => {
 };
 
 const LandingPage = () => {
+  useDocumentTitle('Trang chủ');
   const [bestsellers, setBestsellers] = useState([]);
   const [hoveredId, setHoveredId]     = useState(null);
 

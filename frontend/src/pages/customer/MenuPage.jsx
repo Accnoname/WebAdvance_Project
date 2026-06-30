@@ -5,6 +5,7 @@ import { useCartStore } from '../../store/cartStore';
 import MenuCard from '../../components/menu/MenuCard';
 import { Search, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const CATEGORIES = [
   { id: 'all', label: 'Tất cả' },
@@ -15,6 +16,7 @@ const CATEGORIES = [
 ];
 
 const MenuPage = () => {
+  useDocumentTitle('Thực Đơn');
   const [searchParams] = useSearchParams();
   const tableNumber = searchParams.get('table');
 
