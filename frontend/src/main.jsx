@@ -5,7 +5,7 @@ import App from './App';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  <>
     <App />
     <Toaster
       position="top-right"
@@ -14,5 +14,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         style: { background: '#1e1b1b', color: '#fff' }
       }}
     />
-  </React.StrictMode>
+  </>
 );

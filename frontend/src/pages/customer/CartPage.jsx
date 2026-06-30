@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { OrderService } from '../../services/order.service';
 import { Trash2, Plus, Minus, ArrowRight, Loader2 } from 'lucide-react';
@@ -10,6 +11,7 @@ const CartPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const handleCheckout = async () => {
+    if (isSubmitting) return;
     if (!tableId) {
       toast.error('Vui lòng chọn bàn hoặc quét mã QR tại bàn trước khi đặt món!');
       return;
