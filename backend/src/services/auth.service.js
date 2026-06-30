@@ -5,7 +5,12 @@ const { AppError } = require('../middlewares/error.middleware');
 
 const register = async (userData) => {
   // 1. Kiểm tra email đã tồn tại
-  const existingUser = await UserRepository.findByEmail(userData.email);
+  const existingUser = await new Promise((resolve, reject) => {
+    UserRepository.findByEmail(userData.email, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
   if (existingUser) {
     throw new AppError('Email đã được sử dụng', 409);
   }
@@ -32,7 +37,12 @@ const register = async (userData) => {
 
 const login = async (email, password) => {
   // 1. Tìm user theo email kèm mật khẩu
-  const user = await UserRepository.findByEmailWithPassword(email);
+  const user = await new Promise((resolve, reject) => {
+    UserRepository.findByEmailWithPassword(email, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
   if (!user) {
     throw new AppError('Email hoặc mật khẩu không đúng', 401);
   }
