@@ -22,25 +22,25 @@ const seedData = async () => {
     const SALT_ROUNDS = 12;
     const users = [
       {
-        name:     'Nguyễn Văn Admin',
-        email:    'admin@restaurant.com',
-        password: await bcrypt.hash('Hieu1410@.A', SALT_ROUNDS),
+        name:     'Admin Nhà Hàng',
+        email:    'admin@gmail.com',
+        password: await bcrypt.hash('123456', SALT_ROUNDS),
         role:     'quan_ly',
         phone:    '0901234567',
         isActive: true,
       },
       {
-        name:     'Trần Thị Nhân Viên',
-        email:    'staff@restaurant.com',
-        password: await bcrypt.hash('Staff@123', SALT_ROUNDS),
+        name:     'Nhân Viên Bếp',
+        email:    'staff@gmail.com',
+        password: await bcrypt.hash('123456', SALT_ROUNDS),
         role:     'nhan_vien',
         phone:    '0909876543',
         isActive: true,
       },
       {
-        name:     'Lê Văn Khách',
+        name:     'Khách Hàng',
         email:    'khach@gmail.com',
-        password: await bcrypt.hash('Khach@123', SALT_ROUNDS),
+        password: await bcrypt.hash('123456', SALT_ROUNDS),
         role:     'khach_hang',
         phone:    '0912345678',
         isActive: true,
@@ -48,9 +48,9 @@ const seedData = async () => {
     ];
     await User.insertMany(users);
     console.log(`✅ Đã tạo ${users.length} tài khoản test`);
-    console.log('   👑 Quản lý  : admin@restaurant.com / Hieu1410@.A');
-    console.log('   👨‍🍳 Nhân viên: staff@restaurant.com / Staff@123');
-    console.log('   👤 Khách hàng: khach@gmail.com / Khach@123');
+    console.log('   👑 Quản lý  : admin@gmail.com / 123456');
+    console.log('   👨‍🍳 Nhân viên: staff@gmail.com / 123456');
+    console.log('   👤 Khách hàng: khach@gmail.com / 123456');
 
     // 3. Tạo dữ liệu Bàn
     const tables = [];

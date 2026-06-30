@@ -1,7 +1,7 @@
 # 🔐 Danh Sách Tài Khoản Đăng Nhập (Test Accounts)
 
 > **Cập nhật: 30/06/2026**  
-> Để tạo lại toàn bộ tài khoản trong DB, chạy lệnh:  
+> Để tạo lại toàn bộ tài khoản trong DB, chạy lệnh:
 > ```bash
 > cd backend && node src/seeds/seed.js
 > ```
@@ -13,14 +13,12 @@
 
 | Trường | Giá trị |
 |--------|---------|
-| **Email** | `admin@restaurant.com` |
-| **Password** | `Hieu1410@.A` |
+| **Email** | `admin@gmail.com` |
+| **Password** | `123456` |
 | **Role** | `quan_ly` |
-| **Tên** | Nguyễn Văn Admin |
-| **SĐT** | 0901234567 |
 
 - **Vào trang:** `/manager` → Dashboard Quản Lý
-- **Quyền hạn:** Toàn quyền — Dashboard, Menu, Bàn, Nhân viên, Báo cáo, Kiểm toán, Mã giảm giá.
+- **Quyền hạn:** Toàn quyền — Dashboard, Menu, Bàn, Nhân viên, Báo cáo, Mã giảm giá.
 
 ---
 
@@ -28,15 +26,12 @@
 
 | Trường | Giá trị |
 |--------|---------|
-| **Email** | `staff@restaurant.com` |
-| **Password** | `Staff@123` |
+| **Email** | `staff@gmail.com` |
+| **Password** | `123456` |
 | **Role** | `nhan_vien` |
-| **Tên** | Trần Thị Nhân Viên |
-| **SĐT** | 0909876543 |
 
-- **Vào trang:** `/staff/kitchen` → Màn Hình Bếp (mặc định)
+- **Vào trang:** `/staff/kitchen` → Màn Hình Bếp
 - **Các màn hình khác:** `/staff/tables` (Sơ đồ bàn), `/staff/orders` (Điều phối & Thu ngân)
-- **Quyền hạn:** Kiêm nhiệm Bếp + Phục vụ + Điều phối + Thu ngân tiền mặt.
 
 ---
 
@@ -45,29 +40,25 @@
 | Trường | Giá trị |
 |--------|---------|
 | **Email** | `khach@gmail.com` |
-| **Password** | `Khach@123` |
+| **Password** | `123456` |
 | **Role** | `khach_hang` |
-| **Tên** | Lê Văn Khách |
-| **SĐT** | 0912345678 |
 
 - **Vào trang:** `/` → Landing Page → Menu → Đặt món
-- **Quyền hạn:** Xem menu, giỏ hàng, đặt món, theo dõi đơn real-time, thanh toán (VNPay / tiền mặt).
 
 ---
 
-## 🔄 Luồng Chuyển Hướng Sau Đăng Nhập
+## 🔄 Redirect Sau Đăng Nhập
 
 | Role | Redirect về |
 |------|-------------|
 | `quan_ly` | `/manager` |
 | `nhan_vien` | `/staff/kitchen` |
-| `khach_hang` | `/` (Landing Page) |
+| `khach_hang` | `/` |
 
 ---
 
 ## 💡 Lưu ý
 
-- Đăng ký mới từ `/register` → mặc định được gán role `khach_hang`.
-- Để tạo tài khoản `nhan_vien`, dùng chức năng **"Tạo nhân viên"** trong `/manager/staff`.
-- Để đổi role thủ công: vào MongoDB Compass → collection `users` → sửa trường `role`.
-- Password mới của nhân viên test đã đổi từ `123456` thành `Staff@123` (đủ mạnh hơn).
+- Đăng ký mới từ `/register` → mặc định role `khach_hang`.
+- Để tạo tài khoản `nhan_vien` mới: vào `/manager/staff` → Tạo nhân viên.
+- Để đổi role thủ công: MongoDB Compass → collection `users` → sửa trường `role`.
