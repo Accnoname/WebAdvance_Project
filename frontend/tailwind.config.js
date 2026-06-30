@@ -19,8 +19,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['"Playfair Display"', 'serif'],
-        body: ['Lato', 'sans-serif'],
+        display: ['"Cormorant Garamond"', 'serif'],
+        body: ['Outfit', 'sans-serif'],
         admin: ['"Syne"', 'sans-serif'],
         staff: ['"DM Sans"', 'sans-serif'],
         mono: ['"DM Mono"', 'monospace'],
