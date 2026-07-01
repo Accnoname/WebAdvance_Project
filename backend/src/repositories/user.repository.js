@@ -5,17 +5,15 @@ const UserRepository = {
   ...createBaseRepository(User),
 
   findByEmail: (email, callback) => {
-    User.findOne({ email }).exec((err, doc) => {
-      if (err) return callback(err);
-      callback(null, doc);
-    });
+    User.findOne({ email })
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
   },
 
   findByEmailWithPassword: (email, callback) => {
-    User.findOne({ email }).select('+password').exec((err, doc) => {
-      if (err) return callback(err);
-      callback(null, doc);
-    });
+    User.findOne({ email }).select('+password')
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
   }
 };
 
