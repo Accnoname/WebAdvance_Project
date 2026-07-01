@@ -127,6 +127,8 @@ const KitchenPage = () => {
     orders.forEach(order => {
       order.items.forEach(item => {
         if (item.status === 'hoan_thanh' || item.status === 'huy') return;
+        // Bỏ qua nếu menuItem bị null (món đã bị xóa)
+        if (!item.menuItem || !item.menuItem._id) return;
 
         const key = `${item.menuItem._id}_${item.note || ''}_${item.status}`;
         if (!map.has(key)) {

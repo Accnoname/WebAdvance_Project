@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   TrendingUp, TrendingDown, DollarSign, ShoppingBag,
   Users, Clock, LayoutGrid, ClipboardList, Utensils,
   ChevronRight, AlertTriangle, CheckCircle, Bell, X,
-  Timer, RotateCcw, Ban, Target, ChefHat, Calendar, ChevronDown
+  Timer, RotateCcw, Ban, Target, ChefHat, Calendar, ChevronDown,
+  RefreshCw, Loader2, CheckCircle2, CalendarClock, ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -12,6 +13,7 @@ import {
   BarChart, Bar
 } from 'recharts';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import { TableService } from '../../services/table.service';
 
 // ─── MOCK DATA ────────────────────────────────────────────────
 const revenueByRange = {
@@ -55,11 +57,7 @@ const activeOrders = [
   { id: '#1045', table: 'Bàn 08', time: '18 mins', status: 'xong',     amount: 2100000 },
 ];
 
-const tableStatusData = [
-  { id: 1, name: 'T1-01', status: 'trong'  }, { id: 2, name: 'T1-02', status: 'bận'    },
-  { id: 3, name: 'T1-03', status: 'bận'    }, { id: 4, name: 'T1-04', status: 'chờ_tt' },
-  { id: 5, name: 'T2-01', status: 'trong'  }, { id: 6, name: 'T2-02', status: 'trong'  },
-];
+// tableStatusData đã được xóa — dùng API thực
 
 const INITIAL_ALERTS = [
   { id: 1, level: 'critical', icon: Timer,   title: 'Bếp chậm — Ticket quá lâu', desc: 'Bàn 05: Steak Wagyu chờ 22 phút chưa xong', time: '2 phút trước' },
@@ -170,6 +168,31 @@ const DashboardPage = () => {
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   const [alerts, setAlerts]                 = useState(INITIAL_ALERTS);
   const [showAlertPanel, setShowAlertPanel] = useState(true);
+
+  // ── Table View State (view-only) ──
+  const [tables, setTables]               = useState([]);
+  const [tablesLoading, setTablesLoading] = useState(true);
+
+  const TABLE_STATUS_CONFIG = {
+    trong:        { label: 'Bàn trống',    dotColor: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: CheckCircle2 },
+    dang_phuc_vu: { label: 'Đang phục vụ', dotColor: 'bg-rose-500',    badge: 'bg-rose-50 text-rose-700 border-rose-200',         icon: Utensils },
+    dat_truoc:    { label: 'Đã đặt trước',  dotColor: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border-amber-200',       icon: CalendarClock },
+    dong:         { label: 'Đóng cửa',     dotColor: 'bg-slate-400',  badge: 'bg-slate-100 text-slate-600 border-slate-200',      icon: Ban },
+  };
+
+  const fetchTables = useCallback(async () => {
+    try {
+      setTablesLoading(true);
+      const res = await TableService.getAll();
+      if (res.success) setTables(res.data.sort((a, b) => a.tableNumber - b.tableNumber));
+    } catch {
+      // silent fail
+    } finally {
+      setTablesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchTables(); }, [fetchTables]);
 
   const dismissAlert = (id) => setAlerts(prev => prev.filter(a => a.id !== id));
 
@@ -309,31 +332,77 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Mini Table Map */}
+          {/* Table Status Widget — View Only */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-            <div className="p-6 border-b border-slate-100 bg-slate-50/60">
-              <h2 className="text-lg font-bold text-slate-900 font-admin">Sơ Đồ Bàn</h2>
-            </div>
-            <div className="p-5 grid grid-cols-3 gap-2.5">
-              {tableStatusData.map(table => (
-                <div key={table.id} className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 ${
-                  table.status === 'trong'  ? 'bg-emerald-50 border-emerald-300 text-emerald-700' :
-                  table.status === 'bận'    ? 'bg-rose-50 border-rose-300 text-rose-700' :
-                                              'bg-amber-50 border-amber-300 text-amber-700'
-                }`}>
-                  <span className="font-black font-mono text-sm">{table.name}</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wide mt-0.5 opacity-70">
-                    {table.status === 'chờ_tt' ? 'Chờ TT' : table.status}
-                  </span>
+            <div className="p-5 border-b border-slate-100 bg-slate-50/60">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-900 font-admin">Sơ Đồ Bàn</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchTables}
+                    disabled={tablesLoading}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                    title="Làm mới"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${tablesLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                  <Link
+                    to="/manager/tables?editMode=true"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-600 transition-all"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Chỉnh sửa
+                  </Link>
                 </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto max-h-[480px]">
+              {tablesLoading ? (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary-500" />
+                </div>
+              ) : (
+                <div className="p-4 space-y-2">
+                  {tables.map((table) => {
+                    const cfg = TABLE_STATUS_CONFIG[table.status];
+                    const Icon = cfg.icon;
+                    return (
+                      <div
+                        key={table._id}
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border text-xs font-black ${cfg.badge}`}>
+                            {table.tableNumber}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-800 text-sm">Bàn {table.tableNumber}</div>
+                            <div className="text-xs text-slate-400">{table.capacity} khách</div>
+                          </div>
+                        </div>
+                        <span className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md border ${cfg.badge}`}>
+                          <Icon className="w-3 h-3" />
+                          {cfg.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Legend */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/60 flex flex-wrap gap-x-4 gap-y-1.5">
+              {Object.entries(TABLE_STATUS_CONFIG).map(([key, cfg]) => (
+                <span key={key} className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                  <span className={`w-2 h-2 rounded-full ${cfg.dotColor}`} />
+                  {cfg.label}
+                </span>
               ))}
             </div>
-            <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50 text-xs flex justify-center gap-4 text-slate-500 font-medium">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block" /> Trống</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 block" /> Đang dùng</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 block" /> Chờ TT</span>
-            </div>
           </div>
+
         </div>
 
         {/* QUICK ACTIONS */}

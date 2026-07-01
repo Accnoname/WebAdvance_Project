@@ -1,15 +1,16 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay } from 'lucide-react';
+import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay, LayoutGrid } from 'lucide-react';
 
 const StaffLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
   const navItems = [
-    { name: 'Màn Hình Bếp', path: '/staff/kitchen', icon: MonitorPlay },
-    { name: 'Sơ Đồ Bàn', path: '/staff/tables', icon: LayoutDashboard },
-    { name: 'Điều Phối Đơn', path: '/staff/orders', icon: UtensilsCrossed },
+    { name: 'Dashboard',     path: '/staff/dashboard', icon: LayoutGrid },
+    { name: 'Màn Hình Bếp', path: '/staff/kitchen',   icon: MonitorPlay },
+    { name: 'Sơ Đồ Bàn',   path: '/staff/tables',    icon: LayoutDashboard },
+    { name: 'Điều Phối Đơn', path: '/staff/orders',  icon: UtensilsCrossed },
   ];
 
   return (

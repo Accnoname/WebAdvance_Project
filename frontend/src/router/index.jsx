@@ -18,6 +18,7 @@ import MyOrdersPage from '../pages/customer/MyOrdersPage';
 import PaymentPage from '../pages/customer/PaymentPage';
 
 // Staff Pages
+import StaffDashboard from '../pages/staff/DashboardPage';
 import KitchenPage from '../pages/staff/KitchenPage';
 import TablesPage from '../pages/staff/TablesPage';
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
@@ -65,7 +66,8 @@ const router = createBrowserRouter([
     path: '/staff',
     element: <PrivateRoute roles={['nhan_vien', 'quan_ly']}><StaffLayout /></PrivateRoute>,
     children: [
-      { index: true, element: <Navigate to="/staff/kitchen" replace /> },
+      { index: true, element: <Navigate to="/staff/dashboard" replace /> },
+      { path: 'dashboard', element: <StaffDashboard /> },
       { path: 'kitchen', element: <KitchenPage /> },
       { path: 'tables', element: <TablesPage /> },
       { path: 'orders', element: <StaffOrdersPage /> },
