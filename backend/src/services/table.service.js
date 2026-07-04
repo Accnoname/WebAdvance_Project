@@ -62,4 +62,27 @@ const updateStatus = async (id, status, currentOrder = null) => {
   return await table.save();
 };
 
-module.exports = { getAll, create, updateStatus };
+const remove = async (id) => {
+  const table = await new Promise((resolve, reject) => {
+    TableRepository.findById(id, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
+
+  if (!table) {
+    throw new AppError('Không tìm thấy bàn', 404);
+  }
+  if (table.status !== 'trong' && table.status !== 'dong') {
+    throw new AppError('Chỉ có thể xóa bàn khi đang trống hoặc đóng cửa', 400);
+  }
+
+  return await new Promise((resolve, reject) => {
+    TableRepository.deleteById(id, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
+};
+
+module.exports = { getAll, create, updateStatus, remove };

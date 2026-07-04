@@ -23,6 +23,10 @@ const TableManagePage = () => {
   const [loading, setLoading]           = useState(true);
   const [updating, setUpdating]         = useState(null);
   const [selectedQR, setSelectedQR]     = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createData, setCreateData]     = useState({ tableNumber: '', capacity: 4 });
+  const [isCreating, setIsCreating]     = useState(false);
+  const [deletingId, setDeletingId]     = useState(null);
 
   // Edit mode — tự động bật nếu có ?editMode=true từ URL
   const [isEditMode, setIsEditMode]     = useState(searchParams.get('editMode') === 'true');
@@ -64,6 +68,40 @@ const TableManagePage = () => {
       toast.error('Có lỗi khi cập nhật bàn');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!createData.tableNumber) return toast.error('Vui lòng nhập số bàn');
+    setIsCreating(true);
+    try {
+      await TableService.create({ 
+        tableNumber: parseInt(createData.tableNumber), 
+        capacity: parseInt(createData.capacity) 
+      });
+      toast.success('Thêm bàn thành công');
+      setShowCreateModal(false);
+      setCreateData({ tableNumber: '', capacity: 4 });
+      fetchTables();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Có lỗi khi thêm bàn');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bàn này?')) return;
+    setDeletingId(id);
+    try {
+      await TableService.delete(id);
+      toast.success('Xóa bàn thành công');
+      fetchTables();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Không thể xóa bàn lúc này');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -142,7 +180,10 @@ const TableManagePage = () => {
             {isEditMode ? <CheckSquare className="w-4 h-4" /> : <ListChecks className="w-4 h-4" />}
             {isEditMode ? 'Hủy chỉnh sửa' : 'Bật chỉnh sửa'}
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-sm">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition-all shadow-sm"
+          >
             <Plus className="w-4 h-4" />
             Thêm bàn
           </button>
@@ -304,6 +345,17 @@ const TableManagePage = () => {
                         </span>
                       )}
 
+                      {isEditMode && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(table._id); }}
+                          disabled={deletingId === table._id}
+                          className="p-2 border border-rose-200 rounded-lg text-rose-500 hover:text-white hover:bg-rose-500 transition-colors disabled:opacity-50"
+                          title="Xóa bàn"
+                        >
+                          {deletingId === table._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
+                        </button>
+                      )}
+
                       {table.qrCode && (
                         <button
                           onClick={e => { e.stopPropagation(); setSelectedQR({ tableNumber: table.tableNumber, qrCode: table.qrCode }); }}
@@ -374,6 +426,64 @@ const TableManagePage = () => {
             >
               Đóng lại
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-slate-900 font-admin">Thêm Bàn Mới</h3>
+            </div>
+            
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Số bàn</label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={createData.tableNumber}
+                  onChange={e => setCreateData({...createData, tableNumber: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                  placeholder="Nhập số bàn (VD: 1, 2, 3...)"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Số ghế (Sức chứa)</label>
+                <select
+                  value={createData.capacity}
+                  onChange={e => setCreateData({...createData, capacity: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                >
+                  <option value={2}>2 người</option>
+                  <option value={4}>4 người</option>
+                  <option value={6}>6 người</option>
+                  <option value={8}>8 người</option>
+                  <option value={10}>10 người</option>
+                  <option value={12}>12 người</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isCreating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tạo Bàn'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

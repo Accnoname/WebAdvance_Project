@@ -14,5 +14,10 @@ export const TableService = {
   updateStatus: async (id, status) => {
     const response = await api.patch(`/tables/${id}/status`, { status });
     return response;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/tables/${id}`);
+    return response;
   }
 };

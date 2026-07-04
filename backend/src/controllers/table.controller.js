@@ -22,4 +22,11 @@ const updateStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { getAll, create, updateStatus };
+const deleteTable = async (req, res, next) => {
+  try {
+    const data = await TableService.remove(req.params.id);
+    res.status(200).json(sendSuccess('Xóa bàn thành công', data));
+  } catch (error) { next(error); }
+};
+
+module.exports = { getAll, create, updateStatus, deleteTable };
