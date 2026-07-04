@@ -2,9 +2,13 @@ import { Link, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import { LogOut, User as UserIcon, Menu as MenuIcon, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useCartStore } from '../../store/cartStore';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { getTotalItems, getTotalAmount } = useCartStore();
+  const totalItems = getTotalItems();
+  const totalAmount = getTotalAmount();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -54,8 +58,20 @@ const Navbar = () => {
           </div>
 
           <div className="hidden sm:flex sm:items-center sm:gap-6">
-            <Link to="/cart" className="relative text-[#a89070] hover:text-[#d4a85a] transition-colors">
-              <ShoppingCart className="w-6 h-6" />
+            <Link to="/cart" className="relative flex items-center gap-2 text-[#a89070] hover:text-[#d4a85a] transition-colors group">
+              <div className="relative">
+                <ShoppingCart className="w-6 h-6" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-lg border-2 border-[#0f0a05] group-hover:scale-110 transition-transform">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+              {totalAmount > 0 && (
+                <span className="font-bold text-sm bg-[#1a1208]/80 px-3 py-1.5 rounded-full border border-[#2d1f0a]">
+                  {totalAmount.toLocaleString('vi-VN')}đ
+                </span>
+              )}
             </Link>
 
             {user ? (
@@ -118,15 +134,18 @@ const Navbar = () => {
             <Link to="/menu" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
               Thực đơn
             </Link>
+            <Link to="/cart" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a] flex justify-between items-center">
+              <span>Giỏ hàng</span>
+              {totalItems > 0 && (
+                <span className="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {totalItems} món ({totalAmount.toLocaleString('vi-VN')}đ)
+                </span>
+              )}
+            </Link>
             {user && user.role === 'khach_hang' && (
-              <>
-                <Link to="/cart" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
-                  Giỏ hàng
-                </Link>
-                <Link to="/my-orders" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
-                  Đơn hàng của tôi
-                </Link>
-              </>
+              <Link to="/my-orders" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
+                Đơn hàng của tôi
+              </Link>
             )}
           </div>
           <div className="pt-4 pb-4 border-t border-[#2d1f0a]">
