@@ -1,5 +1,6 @@
 import { Plus, Minus, Check, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const MenuCard = ({ item, onAddToCart }) => {
   const [isAdded, setIsAdded] = useState(false);
@@ -19,6 +20,7 @@ const MenuCard = ({ item, onAddToCart }) => {
   const handleAddToCart = () => {
     if (!item.isAvailable) return;
     onAddToCart(item, quantity, note, selectedVariant);
+    toast.success(`Đã thêm ${quantity} x ${item.name} vào giỏ hàng`);
     setIsAdded(true);
     setNote('');
     setQuantity(1);

@@ -5,8 +5,10 @@ import { TableService } from '../../services/table.service';
 import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import useAuth from '../../hooks/useAuth';
 
 const CartPage = () => {
+  const { user } = useAuth();
   const { items, tableId, orderType, setTable, setOrderType, updateQuantity, updateNote, removeItem, clearCart, getTotalAmount, getTotalItems } = useCartStore();
   const navigate = useNavigate();
 
@@ -35,6 +37,11 @@ const CartPage = () => {
   };
 
   const handleCheckout = async () => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để đặt món!');
+      navigate('/login');
+      return;
+    }
     if (isSubmitting) return;
     if (orderType === 'tai_ban' && !tableId) {
       toast.error('Vui lòng chọn bàn!');

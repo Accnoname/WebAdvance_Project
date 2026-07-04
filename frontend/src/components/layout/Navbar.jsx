@@ -54,11 +54,9 @@ const Navbar = () => {
           </div>
 
           <div className="hidden sm:flex sm:items-center sm:gap-6">
-            {user && user.role === 'khach_hang' && (
-              <Link to="/cart" className="relative text-[#a89070] hover:text-[#d4a85a] transition-colors">
-                <ShoppingCart className="w-6 h-6" />
-              </Link>
-            )}
+            <Link to="/cart" className="relative text-[#a89070] hover:text-[#d4a85a] transition-colors">
+              <ShoppingCart className="w-6 h-6" />
+            </Link>
 
             {user ? (
               <div className="flex items-center gap-4">
