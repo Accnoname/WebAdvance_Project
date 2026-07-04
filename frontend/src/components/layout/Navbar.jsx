@@ -51,7 +51,7 @@ const Navbar = () => {
               </Link>
               {user && user.role === 'khach_hang' && (
                 <Link to="/my-orders" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
-                  Đơn hàng
+                  Lịch sử đặt món
                 </Link>
               )}
             </div>
@@ -144,7 +144,7 @@ const Navbar = () => {
             </Link>
             {user && user.role === 'khach_hang' && (
               <Link to="/my-orders" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
-                Đơn hàng của tôi
+                Lịch sử đặt món
               </Link>
             )}
           </div>

@@ -127,7 +127,7 @@ const StaffOrdersPage = () => {
               <thead className="bg-stone-50 text-stone-900 uppercase font-display font-bold text-xs border-b border-stone-200">
                 <tr>
                   <th className="px-6 py-4">Mã Đơn / Thời gian</th>
-                  <th className="px-6 py-4">Bàn</th>
+                  <th className="px-6 py-4">Loại Đơn / Bàn</th>
                   <th className="px-6 py-4">Chi tiết món</th>
                   <th className="px-6 py-4">Tổng tiền</th>
                   <th className="px-6 py-4">Trạng thái</th>
@@ -145,9 +145,22 @@ const StaffOrdersPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center justify-center w-8 h-8 bg-stone-900 text-white font-bold rounded-lg">
-                        {order.table?.tableNumber || '?'}
-                      </span>
+                      {order.orderType === 'tai_ban' ? (
+                        <div className="flex flex-col gap-1">
+                          <span className="inline-flex items-center justify-center w-8 h-8 bg-stone-900 text-white font-bold rounded-lg">
+                            {order.table?.tableNumber || '?'}
+                          </span>
+                          <span className="text-xs text-stone-500 font-bold">Tại bàn</span>
+                        </div>
+                      ) : order.orderType === 'giao_hang' ? (
+                        <div className="flex flex-col gap-1 max-w-[150px]">
+                          <span className="text-xs font-bold px-2 py-1 bg-primary-100 text-primary-700 rounded-lg inline-block w-fit">Giao hàng</span>
+                          <span className="text-xs text-stone-600 truncate" title={order.deliveryAddress}>{order.deliveryAddress}</span>
+                          <span className="text-xs text-stone-500">{order.deliveryPhone}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">Mang về</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <ul className="list-disc list-inside space-y-1">

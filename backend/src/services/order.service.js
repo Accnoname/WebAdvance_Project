@@ -63,6 +63,8 @@ const OrderService = {
     const order = new Order({
       orderType: data.orderType || 'tai_ban',
       table: table ? table._id : null,
+      deliveryAddress: data.deliveryAddress || null,
+      deliveryPhone: data.deliveryPhone || null,
       customer: user?.role === 'khach_hang' ? user._id : null,
       orderedBy: user ? user._id : null,
       items: processedItems,

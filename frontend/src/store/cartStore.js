@@ -6,10 +6,13 @@ export const useCartStore = create(
     (set, get) => ({
       items: [],
       tableId: null,
-      orderType: 'tai_ban', // 'tai_ban' hoặc 'mang_ve'
+      orderType: 'tai_ban', // 'tai_ban', 'mang_ve', 'giao_hang'
+      deliveryAddress: '',
+      deliveryPhone: '',
 
       setTable: (tableId) => set({ tableId }),
       setOrderType: (orderType) => set({ orderType }),
+      setDeliveryInfo: (address, phone) => set({ deliveryAddress: address, deliveryPhone: phone }),
 
       addItem: (menuItem, quantity = 1, note = '', variant = null) => set((state) => {
         const existingIndex = state.items.findIndex(

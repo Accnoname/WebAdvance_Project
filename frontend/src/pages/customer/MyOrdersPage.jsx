@@ -83,7 +83,7 @@ const MyOrdersPage = () => {
         <div className="w-32 h-32 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <span className="text-5xl">🍽️</span>
         </div>
-        <h2 className="text-2xl font-display font-bold text-stone-900 mb-2">Chưa có đơn hàng nào</h2>
+        <h2 className="text-2xl font-display font-bold text-[#d4a85a] mb-2">Chưa có đơn hàng nào</h2>
         <p className="text-stone-500">Hãy đặt món để trải nghiệm hương vị tuyệt vời của chúng tôi nhé!</p>
       </div>
     );
@@ -92,7 +92,7 @@ const MyOrdersPage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 animate-fade-in-up">
       <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold text-stone-900">Lịch Sử Đặt Món</h1>
+        <h1 className="text-3xl font-display font-bold text-[#d4a85a]">Lịch Sử Đặt Món</h1>
         <p className="text-stone-500 mt-2">Theo dõi tiến độ món ăn của bạn theo thời gian thực</p>
       </div>
 
@@ -112,8 +112,10 @@ const MyOrdersPage = () => {
                      order.orderStatus === 'da_huy' ? 'Đã hủy' : 'Đang xử lý'}
                   </span>
                 </div>
-                <div className="text-sm text-stone-500 flex gap-4">
-                  <span>Bàn: {order.table?.tableNumber || '?'}</span>
+                <div className="text-sm text-stone-500 flex flex-wrap gap-4 mt-2">
+                  {order.orderType === 'tai_ban' && <span>Bàn: {order.table?.tableNumber || '?'}</span>}
+                  {order.orderType === 'mang_ve' && <span>Đơn mang về</span>}
+                  {order.orderType === 'giao_hang' && <span>Giao hàng: {order.deliveryAddress}</span>}
                   <span>•</span>
                   <span>{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
                 </div>

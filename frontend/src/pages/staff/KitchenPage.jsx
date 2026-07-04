@@ -142,6 +142,7 @@ const KitchenPage = () => {
         entry.totalQuantity += item.quantity;
         entry.tables.push({
           tableNumber: order.table?.tableNumber || '?',
+          orderType: order.orderType,
           orderId: order._id,
           itemId: item._id,
           quantity: item.quantity
@@ -223,8 +224,10 @@ const KitchenPage = () => {
               >
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-display font-bold text-stone-900 flex items-center gap-2">
-                      Bàn {order.table?.tableNumber || '?'}
+                    <h3 className="text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
+                      {order.orderType === 'tai_ban' ? `Bàn ${order.table?.tableNumber || '?'}` : 
+                       order.orderType === 'mang_ve' ? <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-sm">Mang về</span> : 
+                       <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-sm">Giao hàng</span>}
                       {isPriority && <AlertCircle className="w-5 h-5 text-rose-500 animate-pulse" />}
                     </h3>
                     <div className="text-sm text-stone-500 flex items-center gap-1 mt-1">
@@ -311,16 +314,19 @@ const KitchenPage = () => {
                 </div>
               )}
 
-              <div className="flex-grow">
-                <div className="text-sm text-stone-500 mb-2 font-medium">Gồm các bàn:</div>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {agg.tables.map((t, i) => (
-                    <span key={i} className="px-3 py-1 bg-stone-100 text-stone-700 font-bold text-sm rounded-lg border border-stone-200">
-                      Bàn {t.tableNumber} (x{t.quantity})
-                    </span>
-                  ))}
+                <div className="flex-grow">
+                  <div className="text-sm text-stone-500 mb-2 font-medium">Gồm các đơn:</div>
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {agg.tables.map((t, i) => (
+                      <span key={i} className="px-3 py-1 bg-stone-100 text-stone-700 font-bold text-sm rounded-lg border border-stone-200 flex items-center gap-1">
+                        {t.orderType === 'tai_ban' ? `Bàn ${t.tableNumber}` : 
+                         t.orderType === 'mang_ve' ? <span className="text-amber-600">Mang về</span> : 
+                         <span className="text-primary-600">Giao hàng</span>} 
+                        (x{t.quantity})
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
               <div className="pt-4 border-t border-stone-100 mt-auto">
                 {agg.status === 'cho_xac_nhan' && (

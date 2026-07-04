@@ -14,10 +14,12 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  orderType:   { type: String, enum: ['tai_ban', 'mang_ve'], default: 'tai_ban' },
-  table:       { type: mongoose.Schema.Types.ObjectId, ref: 'Table' }, // Optional for 'mang_ve'
-  customer:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  items:       [orderItemSchema],
+  orderType:       { type: String, enum: ['tai_ban', 'mang_ve', 'giao_hang'], default: 'tai_ban' },
+  table:           { type: mongoose.Schema.Types.ObjectId, ref: 'Table' }, // Optional
+  deliveryAddress: { type: String, default: null }, // Cho giao hàng
+  deliveryPhone:   { type: String, default: null }, // Cho giao hàng
+  customer:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  items:           [orderItemSchema],
   orderStatus: {
     type: String,
     enum: ['moi', 'dang_xu_ly', 'hoan_thanh', 'da_huy'],
