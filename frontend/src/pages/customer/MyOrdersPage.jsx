@@ -59,11 +59,9 @@ const MyOrdersPage = () => {
   const fetchMyOrders = async () => {
     try {
       setLoading(true);
-      // Giả lập lấy đơn của bàn hiện tại hoặc của user đang đăng nhập
-      const response = await OrderService.getAll(tableId ? { tableId } : {});
-      // Lọc các đơn của bàn này nếu không có user
-      const filtered = tableId ? response.data.filter(o => o.table?._id === tableId || o.table?.tableNumber == tableId) : response.data;
-      setOrders(filtered);
+      // Fetch personal order history
+      const response = await OrderService.getMyOrders();
+      setOrders(response.data);
     } catch (error) {
       toast.error('Không thể tải lịch sử đơn hàng');
     } finally {

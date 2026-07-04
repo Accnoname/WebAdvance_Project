@@ -32,9 +32,12 @@ const OrderService = {
   },
 
   create: async (data, user) => {
-    // Validate table
-    const table = await Table.findById(data.tableId);
-    if (!table) throw new AppError('Bàn không tồn tại', 404);
+    // Validate table if orderType is 'tai_ban'
+    let table = null;
+    if (data.orderType === 'tai_ban' || data.tableId) {
+      table = await Table.findById(data.tableId);
+      if (!table) throw new AppError('Bàn không tồn tại', 404);
+    }
 
     // Get prices and calculate total
     let totalAmount = 0;
@@ -58,7 +61,8 @@ const OrderService = {
     }
 
     const order = new Order({
-      table: table._id,
+      orderType: data.orderType || 'tai_ban',
+      table: table ? table._id : null,
       customer: user?.role === 'khach_hang' ? user._id : null,
       orderedBy: user ? user._id : null,
       items: processedItems,
@@ -69,7 +73,7 @@ const OrderService = {
     await order.save();
 
     // Update table status
-    if (table.status === 'trong' || table.status === 'dat_truoc') {
+    if (table && (table.status === 'trong' || table.status === 'dat_truoc')) {
       table.status = 'dang_phuc_vu';
       table.currentOrder = order._id;
       await table.save();
@@ -85,7 +89,9 @@ const OrderService = {
     if (io) {
       io.to('kitchen').emit('order:new', order);
       io.to('staff').emit('order:new', order);
-      io.to('staff').emit('table:status-changed', { tableId: table._id, status: table.status });
+      if (table) {
+        io.to('staff').emit('table:status-changed', { tableId: table._id, status: table.status });
+      }
     }
 
     return order;
