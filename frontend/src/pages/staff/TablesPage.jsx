@@ -94,7 +94,8 @@ const TablesPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 animate-fade-in-up">
+    <>
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white p-6 rounded-3xl shadow-sm border border-stone-200/60 mb-8">
         <div className="flex items-center gap-4">
@@ -216,7 +217,7 @@ const TablesPage = () => {
                       {table.qrCode && (
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedQR({ tableNumber: table.tableNumber, qrCode: table.qrCode }); }}
-                          className="p-2 bg-[#21262d] hover:bg-[#30363d] text-white rounded-lg border border-[#30363d] transition-colors hover:border-amber-500/50"
+                          className="p-2.5 bg-white hover:bg-stone-50 text-stone-600 rounded-xl border border-stone-200/60 shadow-sm transition-all hover:text-primary-600 hover:border-primary-500/50 active:scale-95"
                           title="Xem mã QR"
                         >
                           <QrCode className="w-5 h-5" />
@@ -232,61 +233,62 @@ const TablesPage = () => {
 
         {/* Bulk Edit Toolbar */}
         {isEditMode && selectedTables.length > 0 && (
-          <div className="sticky bottom-0 bg-[#21262d] border-t border-[#30363d] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
-            <div className="text-white font-bold">
-              Đã chọn <span className="text-amber-500">{selectedTables.length}</span> bàn
+          <div className="sticky bottom-0 bg-white border-t border-stone-200/60 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+            <div className="text-stone-900 font-bold">
+              Đã chọn <span className="text-primary-600 font-black">{selectedTables.length}</span> bàn
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}
-                className="flex-1 sm:w-48 appearance-none bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-white"
+                className="flex-1 sm:w-48 appearance-none bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 text-stone-700 shadow-sm"
               >
                 {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                  <option key={key} value={key} className="bg-[#161b22] text-white">{cfg.label}</option>
+                  <option key={key} value={key} className="bg-white text-stone-900">{cfg.label}</option>
                 ))}
               </select>
               <button
                 onClick={handleBulkUpdate}
                 disabled={isBulkUpdating}
-                className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-stone-900 rounded-lg font-black text-sm transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+                className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-black text-sm transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap shadow-sm active:scale-95"
               >
-                {isBulkUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isBulkUpdating && <Loader2 className="w-5 h-5 animate-spin" />}
                 Áp dụng
               </button>
             </div>
           </div>
         )}
       </div>
+      </div>
 
-      {/* QR Modal */}
+      {/* QR Modal (Outside transformed container to fix fixed positioning) */}
       {selectedQR && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
           onClick={() => setSelectedQR(null)}
         >
           <div
-            className="bg-[#161b22] border border-[#30363d] rounded-3xl w-full max-w-sm p-8 flex flex-col items-center text-center shadow-2xl"
+            className="bg-white border border-stone-200/60 rounded-3xl w-full max-w-sm p-8 flex flex-col items-center text-center shadow-2xl animate-fade-in-up"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-4">
-              <QrCode className="w-7 h-7" />
+            <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center mb-6 border border-primary-100 shadow-sm">
+              <QrCode className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-black text-white mb-1">Bàn Số {selectedQR.tableNumber}</h3>
-            <p className="text-stone-500 text-sm mb-6">Đưa mã này cho khách hàng quét để gọi món</p>
-            <div className="bg-white p-4 rounded-2xl shadow-lg">
-              <img src={selectedQR.qrCode} alt="QR Code" className="w-48 h-48" />
+            <h3 className="text-3xl font-black text-stone-900 mb-2 tracking-tight">Bàn Số {selectedQR.tableNumber}</h3>
+            <p className="text-stone-500 text-sm mb-8 font-medium">Đưa mã này cho khách hàng quét để gọi món</p>
+            <div className="bg-white p-4 rounded-3xl shadow-[0_0_20px_rgba(0,0,0,0.05)] border border-stone-100">
+              <img src={selectedQR.qrCode} alt="QR Code" className="w-48 h-48 rounded-xl" />
             </div>
             <button
               onClick={() => setSelectedQR(null)}
-              className="mt-6 w-full py-3 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-stone-300 rounded-xl font-bold transition-colors"
+              className="mt-8 w-full py-4 bg-stone-100 hover:bg-stone-200 text-stone-900 rounded-2xl font-black transition-all active:scale-95 text-lg"
             >
               Đóng lại
             </button>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
