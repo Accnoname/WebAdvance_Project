@@ -49,6 +49,9 @@ const Navbar = () => {
               <Link to="/menu" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
                 Thực đơn
               </Link>
+              <Link to="/reservation" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
+                Đặt bàn
+              </Link>
               {user && user.role === 'khach_hang' && (
                 <Link to="/my-orders" className="inline-flex items-center px-1 pt-1 text-sm font-bold text-[#a89070] hover:text-[#d4a85a] transition-colors uppercase tracking-wider">
                   Lịch sử đặt món
@@ -133,6 +136,9 @@ const Navbar = () => {
           <div className="pt-2 pb-3 space-y-1">
             <Link to="/menu" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
               Thực đơn
+            </Link>
+            <Link to="/reservation" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a]">
+              Đặt bàn
             </Link>
             <Link to="/cart" className="block pl-4 pr-4 py-3 text-base font-bold text-[#a89070] hover:bg-[#1a1208] hover:text-[#d4a85a] flex justify-between items-center">
               <span>Giỏ hàng</span>

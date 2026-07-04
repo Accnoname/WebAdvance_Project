@@ -16,6 +16,7 @@ import MenuPage from '../pages/customer/MenuPage';
 import CartPage from '../pages/customer/CartPage';
 import MyOrdersPage from '../pages/customer/MyOrdersPage';
 import PaymentPage from '../pages/customer/PaymentPage';
+import ReservationPage from '../pages/customer/ReservationPage';
 
 // Staff Pages
 import StaffDashboard from '../pages/staff/DashboardPage';
@@ -29,6 +30,7 @@ import MenuManagePage from '../pages/manager/MenuManagePage';
 import TableManagePage from '../pages/manager/TableManagePage';
 import StaffManagePage from '../pages/manager/StaffManagePage';
 import ReportPage from '../pages/manager/ReportPage';
+import ReservationsManagePage from '../pages/manager/ReservationsManagePage';
 
 // Route Guard component
 const PrivateRoute = ({ children, roles }) => {
@@ -58,6 +60,7 @@ const router = createBrowserRouter([
       { path: 'cart', element: <PrivateRoute roles={['khach_hang']}><CartPage /></PrivateRoute> },
       { path: 'my-orders', element: <PrivateRoute roles={['khach_hang']}><MyOrdersPage /></PrivateRoute> },
       { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang']}><PaymentPage /></PrivateRoute> },
+      { path: 'reservation', element: <ReservationPage /> },
     ]
   },
 
@@ -84,6 +87,7 @@ const router = createBrowserRouter([
       { path: 'tables', element: <TableManagePage /> },
       { path: 'staff', element: <StaffManagePage /> },
       { path: 'reports', element: <ReportPage /> },
+      { path: 'reservations', element: <ReservationsManagePage /> },
     ]
   }
 ]);
