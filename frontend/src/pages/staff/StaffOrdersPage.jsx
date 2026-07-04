@@ -78,31 +78,31 @@ const StaffOrdersPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#21262d] rounded-2xl flex items-center justify-center border border-[#30363d]">
-            <ClipboardList className="w-6 h-6 text-amber-500" />
+          <div className="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center">
+            <ClipboardList className="w-6 h-6 text-primary-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-display font-bold text-white">Quản Lý Đơn Hàng</h1>
-            <p className="text-stone-400 mt-1">Theo dõi và cập nhật trạng thái các đơn hàng (Real-time)</p>
+            <h1 className="text-3xl font-display font-bold text-stone-900">Quản Lý Đơn Hàng</h1>
+            <p className="text-stone-500 mt-1">Theo dõi và cập nhật trạng thái các đơn hàng (Real-time)</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-[#161b22] p-2 rounded-xl shadow-sm border border-[#30363d]">
+        <div className="flex items-center gap-4 bg-white p-2 rounded-xl shadow-sm border border-stone-100">
           <Filter className="w-5 h-5 text-stone-400 ml-2" />
           <select 
             value={filter} 
             onChange={(e) => setFilter(e.target.value)}
-            className="bg-transparent border-none focus:ring-0 text-stone-200 font-medium py-2 pr-8 cursor-pointer"
+            className="bg-transparent border-none focus:ring-0 text-stone-700 font-medium py-2 pr-8 cursor-pointer"
           >
-            <option value="all" className="bg-[#161b22]">Tất cả đơn hàng</option>
-            <option value="moi" className="bg-[#161b22]">Đơn mới</option>
-            <option value="dang_xu_ly" className="bg-[#161b22]">Đang xử lý</option>
-            <option value="hoan_thanh" className="bg-[#161b22]">Đã hoàn thành</option>
-            <option value="da_huy" className="bg-[#161b22]">Đã hủy</option>
+            <option value="all">Tất cả đơn hàng</option>
+            <option value="moi">Đơn mới</option>
+            <option value="dang_xu_ly">Đang xử lý</option>
+            <option value="hoan_thanh">Đã hoàn thành</option>
+            <option value="da_huy">Đã hủy</option>
           </select>
           <button 
             onClick={fetchOrders}
-            className="p-2 hover:bg-[#21262d] rounded-lg text-stone-400 transition-colors"
+            className="p-2 hover:bg-stone-100 rounded-lg text-stone-500 transition-colors"
             title="Tải lại"
           >
             <RefreshCcw className="w-5 h-5" />
@@ -112,19 +112,19 @@ const StaffOrdersPage = () => {
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-[#161b22] rounded-3xl p-12 text-center border border-[#30363d]">
-          <ClipboardList className="w-16 h-16 text-stone-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Không có đơn hàng nào</h3>
-          <p className="text-stone-400">Chưa có đơn hàng nào khớp với bộ lọc hiện tại.</p>
+        <div className="bg-white rounded-3xl p-12 text-center border border-stone-100">
+          <ClipboardList className="w-16 h-16 text-stone-200 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-stone-900 mb-2">Không có đơn hàng nào</h3>
+          <p className="text-stone-500">Chưa có đơn hàng nào khớp với bộ lọc hiện tại.</p>
         </div>
       ) : (
-        <div className="bg-[#161b22] rounded-3xl shadow-sm border border-[#30363d] overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-sm border border-stone-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-stone-300">
-              <thead className="bg-[#21262d] text-stone-200 uppercase font-display font-bold text-xs border-b border-[#30363d]">
+            <table className="w-full text-left text-sm text-stone-600">
+              <thead className="bg-stone-50 text-stone-900 uppercase font-display font-bold text-xs border-b border-stone-200">
                 <tr>
                   <th className="px-6 py-4">Mã Đơn / Thời gian</th>
                   <th className="px-6 py-4">Loại Đơn / Bàn</th>
@@ -136,10 +136,10 @@ const StaffOrdersPage = () => {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order._id} className="border-b border-[#30363d] hover:bg-[#21262d] transition-colors">
+                  <tr key={order._id} className="border-b border-stone-100 hover:bg-stone-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-white mb-1">#{order._id.slice(-6).toUpperCase()}</div>
-                      <div className="text-xs text-stone-400 flex items-center gap-1">
+                      <div className="font-bold text-stone-900 mb-1">#{order._id.slice(-6).toUpperCase()}</div>
+                      <div className="text-xs text-stone-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {new Date(order.createdAt).toLocaleString('vi-VN')}
                       </div>
@@ -147,19 +147,19 @@ const StaffOrdersPage = () => {
                     <td className="px-6 py-4">
                       {order.orderType === 'tai_ban' ? (
                         <div className="flex flex-col gap-1">
-                          <span className="inline-flex items-center justify-center w-8 h-8 bg-[#30363d] text-white font-bold rounded-lg border border-stone-600">
+                          <span className="inline-flex items-center justify-center w-8 h-8 bg-stone-900 text-white font-bold rounded-lg">
                             {order.table?.tableNumber || '?'}
                           </span>
-                          <span className="text-xs text-stone-400 font-bold">Tại bàn</span>
+                          <span className="text-xs text-stone-500 font-bold">Tại bàn</span>
                         </div>
                       ) : order.orderType === 'giao_hang' ? (
                         <div className="flex flex-col gap-1 max-w-[150px]">
-                          <span className="text-xs font-bold px-2 py-1 bg-amber-500/10 text-amber-500 rounded-lg inline-block w-fit">Giao hàng</span>
-                          <span className="text-xs text-stone-300 truncate" title={order.deliveryAddress}>{order.deliveryAddress}</span>
-                          <span className="text-xs text-stone-400">{order.deliveryPhone}</span>
+                          <span className="text-xs font-bold px-2 py-1 bg-primary-100 text-primary-700 rounded-lg inline-block w-fit">Giao hàng</span>
+                          <span className="text-xs text-stone-600 truncate" title={order.deliveryAddress}>{order.deliveryAddress}</span>
+                          <span className="text-xs text-stone-500">{order.deliveryPhone}</span>
                         </div>
                       ) : (
-                        <span className="text-xs font-bold px-2 py-1 bg-stone-700 text-stone-300 rounded-lg">Mang về</span>
+                        <span className="text-xs font-bold px-2 py-1 bg-amber-100 text-amber-700 rounded-lg">Mang về</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -174,7 +174,7 @@ const StaffOrdersPage = () => {
                         <div className="text-xs text-stone-400 mt-1 italic">...và {order.items.length - 2} món khác</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-bold text-amber-500">
+                    <td className="px-6 py-4 font-bold text-primary-600">
                       {order.totalAmount.toLocaleString('vi-VN')}đ
                     </td>
                     <td className="px-6 py-4">
@@ -186,7 +186,7 @@ const StaffOrdersPage = () => {
                       <select
                         value={order.orderStatus}
                         onChange={(e) => handleUpdateStatus(order._id, e.target.value)}
-                        className="bg-[#161b22] border border-[#30363d] text-stone-200 text-sm rounded-xl focus:ring-amber-500 focus:border-amber-500 block w-full p-2"
+                        className="bg-stone-50 border border-stone-200 text-stone-700 text-sm rounded-xl focus:ring-primary-500 focus:border-primary-500 block w-full p-2"
                       >
                         <option value="moi">Mới</option>
                         <option value="dang_xu_ly">Đang xử lý</option>

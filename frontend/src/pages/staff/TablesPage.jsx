@@ -98,8 +98,8 @@ const TablesPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Sơ Đồ Bàn</h1>
-          <p className="text-stone-400 text-sm mt-1">Quản lý trạng thái và mã QR gọi món</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">Sơ Đồ Bàn</h1>
+          <p className="text-stone-500 text-sm mt-1">Quản lý trạng thái và mã QR gọi món</p>
         </div>
         
         <button
@@ -109,8 +109,8 @@ const TablesPage = () => {
           }}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 border
             ${isEditMode 
-              ? 'bg-amber-500 text-stone-900 border-amber-500' 
-              : 'bg-[#21262d] text-stone-300 border-[#30363d] hover:bg-[#30363d] hover:border-amber-500/40'}`}
+              ? 'bg-primary-500 text-white border-primary-500 shadow-sm' 
+              : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50 hover:border-primary-500/40 shadow-sm'}`}
         >
           {isEditMode ? <CheckSquare className="w-4 h-4" /> : <ListChecks className="w-4 h-4" />}
           {isEditMode ? 'Hủy chỉnh sửa' : 'Bật chế độ chỉnh sửa'}
@@ -118,24 +118,24 @@ const TablesPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden relative shadow-lg">
+      <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden relative shadow-sm">
         <div className="p-5">
           {loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               {/* Select All Checkbox */}
               {isEditMode && (
-                <div className="flex items-center gap-3 p-4 bg-[#0d1117] rounded-xl border border-[#30363d] mb-2 cursor-pointer transition-colors hover:border-[#8b949e]" onClick={toggleAllSelection}>
+                <div className="flex items-center gap-3 p-4 bg-stone-50 rounded-xl border border-stone-200 mb-2 cursor-pointer transition-colors hover:border-stone-300 shadow-sm" onClick={toggleAllSelection}>
                   <input 
                     type="checkbox" 
                     checked={selectedTables.length === tables.length && tables.length > 0}
                     readOnly
-                    className="w-5 h-5 rounded border-[#30363d] bg-[#161b22] text-amber-500 focus:ring-amber-500/30"
+                    className="w-5 h-5 rounded border-stone-300 bg-white text-primary-500 focus:ring-primary-500/30"
                   />
-                  <span className="text-white font-bold text-sm">Chọn tất cả ({selectedTables.length}/{tables.length})</span>
+                  <span className="text-stone-900 font-bold text-sm">Chọn tất cả ({selectedTables.length}/{tables.length})</span>
                 </div>
               )}
 
@@ -148,8 +148,8 @@ const TablesPage = () => {
                 return (
                   <div
                     key={table._id}
-                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 bg-[#0d1117] 
-                      ${isSelected ? 'border-amber-500 bg-amber-500/5' : 'border-[#30363d] hover:border-amber-500/50'}`}
+                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 bg-white shadow-sm
+                      ${isSelected ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-primary-500/50'}`}
                     onClick={() => isEditMode && toggleTableSelection(table._id)}
                   >
                     {/* Table Info */}
@@ -159,7 +159,7 @@ const TablesPage = () => {
                           type="checkbox" 
                           checked={isSelected}
                           readOnly
-                          className="w-5 h-5 rounded border-[#30363d] bg-[#161b22] text-amber-500 focus:ring-amber-500/30 flex-shrink-0"
+                          className="w-5 h-5 rounded border-stone-300 bg-white text-primary-500 focus:ring-primary-500/30 flex-shrink-0"
                         />
                       )}
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm flex-shrink-0 ${config.bg}`}>
@@ -171,8 +171,8 @@ const TablesPage = () => {
                       
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-white text-base">Bàn {table.tableNumber}</span>
-                          <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md ${config.bg} ${config.text}`}>
+                          <span className="font-bold text-stone-900 text-base">Bàn {table.tableNumber}</span>
+                          <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md border ${config.bg} ${config.text}`}>
                             <Icon className="w-3 h-3" />
                             {config.label}
                           </span>
@@ -189,15 +189,15 @@ const TablesPage = () => {
                             value={table.status}
                             onChange={(e) => handleUpdateStatusDirect(table._id, e.target.value)}
                             disabled={isUpdating}
-                            className={`w-full sm:w-40 appearance-none bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 pr-8 text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors disabled:opacity-50 text-white`}
+                            className={`w-full sm:w-40 appearance-none bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 pr-8 text-sm font-bold focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors disabled:opacity-50 text-stone-700 shadow-sm`}
                           >
                             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-                              <option key={key} value={key} className="bg-[#161b22] text-white">
+                              <option key={key} value={key} className="bg-white text-stone-900">
                                 {cfg.label}
                               </option>
                             ))}
                           </select>
-                          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-stone-400">
+                          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-stone-500">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                           </div>
                         </div>

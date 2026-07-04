@@ -61,10 +61,10 @@ const StaffDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Xin chào, <span className="text-amber-400">{user?.name}</span> 👋
+          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+            Xin chào, <span className="text-primary-600">{user?.name}</span> 👋
           </h1>
-          <p className="text-stone-400 text-sm mt-1 flex items-center gap-2">
+          <p className="text-stone-500 text-sm mt-1 flex items-center gap-2">
             <Clock className="w-4 h-4" />
             {dateStr} — {timeStr}
           </p>
@@ -72,7 +72,7 @@ const StaffDashboard = () => {
         <button
           onClick={fetchTables}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-stone-300 rounded-xl font-bold text-sm transition-all duration-200 hover:border-amber-500/40 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 rounded-xl font-bold text-sm transition-all duration-200 hover:border-primary-500/40 shadow-sm disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Làm mới
@@ -89,13 +89,13 @@ const StaffDashboard = () => {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className={`flex items-center gap-4 p-4 rounded-2xl border ${card.bg} transition-all duration-200`}>
-              <div className={`p-2.5 rounded-xl bg-[#161b22] ${card.color}`}>
+            <div key={card.label} className={`flex items-center gap-4 p-4 rounded-2xl border ${card.bg} transition-all duration-200 shadow-sm bg-white`}>
+              <div className={`p-2.5 rounded-xl bg-stone-50 border border-stone-100 ${card.color}`}>
                 <Icon className="w-5 h-5" />
               </div>
               <div>
                 <div className={`text-2xl font-black ${card.color}`}>{card.value}</div>
-                <div className="text-xs text-stone-500 font-medium mt-0.5">{card.label}</div>
+                <div className="text-xs text-stone-600 font-medium mt-0.5">{card.label}</div>
               </div>
             </div>
           );
@@ -103,15 +103,15 @@ const StaffDashboard = () => {
       </div>
 
       {/* Table View Section — View Only */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
+      <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-5 border-b border-[#30363d]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-5 border-b border-stone-200">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/10 rounded-xl">
-              <LayoutGrid className="w-5 h-5 text-amber-400" />
+            <div className="p-2 bg-primary-50 rounded-xl">
+              <LayoutGrid className="w-5 h-5 text-primary-500" />
             </div>
             <div>
-              <h2 className="font-bold text-white text-lg">Sơ Đồ Bàn</h2>
+              <h2 className="font-bold text-stone-900 text-lg">Sơ Đồ Bàn</h2>
               <p className="text-stone-500 text-xs">Xem nhanh trạng thái bàn hiện tại</p>
             </div>
           </div>
@@ -128,10 +128,10 @@ const StaffDashboard = () => {
                 <button
                   key={f.key}
                   onClick={() => setFilterStatus(f.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border
                     ${filterStatus === f.key
-                      ? 'bg-amber-500 text-stone-900'
-                      : 'bg-[#21262d] text-stone-400 hover:text-white hover:bg-[#30363d]'
+                      ? 'bg-primary-500 text-white border-primary-500 shadow-sm'
+                      : 'bg-stone-50 text-stone-600 border-stone-200 hover:text-stone-900 hover:bg-stone-100'
                     }`}
                 >
                   {f.label}
@@ -142,7 +142,7 @@ const StaffDashboard = () => {
             {/* Redirect to TablesPage with editMode */}
             <Link
               to="/staff/tables?editMode=true"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-[#30363d] bg-[#21262d] text-stone-300 hover:text-amber-400 hover:border-amber-500/40 transition-all whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-stone-200 bg-white text-stone-600 hover:text-primary-600 hover:border-primary-500/40 transition-all whitespace-nowrap shadow-sm"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               Chỉnh sửa
@@ -169,16 +169,16 @@ const StaffDashboard = () => {
                 return (
                   <div
                     key={table._id}
-                    className={`flex flex-col items-center text-center p-4 rounded-2xl border ${config.bg}`}
+                    className={`flex flex-col items-center text-center p-4 rounded-2xl border ${config.bg} bg-white shadow-sm`}
                   >
-                    <div className="w-14 h-14 rounded-full bg-[#0d1117] border border-[#30363d] flex items-center justify-center mb-3 shadow-lg">
-                      <span className="text-xl font-black text-white">{table.tableNumber}</span>
+                    <div className="w-14 h-14 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center mb-3 shadow-sm">
+                      <span className="text-xl font-black text-stone-900">{table.tableNumber}</span>
                     </div>
                     <div className={`flex items-center gap-1.5 mb-1 ${config.text}`}>
                       <Icon className="w-3.5 h-3.5" />
                       <span className="font-bold text-xs">{config.label}</span>
                     </div>
-                    <div className="text-stone-600 text-xs">{table.capacity} khách</div>
+                    <div className="text-stone-500 text-xs">{table.capacity} khách</div>
                   </div>
                 );
               })}

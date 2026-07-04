@@ -14,16 +14,16 @@ const StaffLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white font-staff selection:bg-amber-500 selection:text-stone-900 flex flex-col">
-      <nav className="bg-[#161b22] border-b border-[#30363d] sticky top-0 z-50">
+    <div className="min-h-screen bg-stone-50 text-stone-900 font-staff selection:bg-primary-500 selection:text-white flex flex-col">
+      <nav className="bg-white border-b border-stone-200 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-8">
               <Link to="/staff" className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-stone-900 font-black text-lg">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-black text-lg">
                   S
                 </div>
-                <span className="font-bold text-xl tracking-wide hidden sm:block">STAFF PORTAL</span>
+                <span className="font-bold text-xl tracking-wide hidden sm:block text-stone-800">STAFF PORTAL</span>
               </Link>
               <div className="hidden sm:flex items-center gap-2">
                 {navItems.map((item) => {
@@ -34,7 +34,7 @@ const StaffLayout = () => {
                       key={item.path}
                       to={item.path}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200
-                        ${isActive ? 'bg-amber-500/10 text-amber-500' : 'text-stone-400 hover:text-white hover:bg-[#21262d]'}`}
+                        ${isActive ? 'bg-primary-50 text-primary-700' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'}`}
                     >
                       <Icon className="w-4 h-4" />
                       {item.name}
@@ -45,12 +45,12 @@ const StaffLayout = () => {
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="text-sm text-stone-400 font-bold bg-[#21262d] px-3 py-1.5 rounded-lg border border-[#30363d]">
+              <div className="text-sm text-stone-600 font-bold bg-stone-100 px-3 py-1.5 rounded-lg border border-stone-200">
                 {user?.name}
               </div>
               <button
                 onClick={logout}
-                className="p-2 text-stone-400 hover:text-rose-500 transition-colors bg-[#21262d] rounded-lg border border-[#30363d] hover:border-rose-500/30 hover:bg-rose-500/10"
+                className="p-2 text-stone-500 hover:text-rose-600 transition-colors bg-stone-100 rounded-lg border border-stone-200 hover:border-rose-200 hover:bg-rose-50"
               >
                 <LogOut className="w-5 h-5" />
               </button>
