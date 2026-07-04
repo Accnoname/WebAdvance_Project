@@ -218,19 +218,19 @@ const KitchenPage = () => {
             return (
               <div 
                 key={order._id} 
-                className={`bg-white rounded-3xl p-6 border-2 shadow-sm transition-all duration-300 ${
-                  isPriority ? 'border-rose-500 shadow-rose-500/20' : 'border-stone-100'
+                className={`bg-[#161b22] rounded-3xl p-6 border-2 shadow-sm transition-all duration-300 ${
+                  isPriority ? 'border-rose-500 shadow-rose-500/20' : 'border-[#30363d]'
                 }`}
               >
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
+                    <h3 className="text-xl font-display font-bold text-white flex flex-wrap items-center gap-2">
                       {order.orderType === 'tai_ban' ? `Bàn ${order.table?.tableNumber || '?'}` : 
-                       order.orderType === 'mang_ve' ? <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-sm">Mang về</span> : 
-                       <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-sm">Giao hàng</span>}
+                       order.orderType === 'mang_ve' ? <span className="bg-amber-500/10 text-amber-500 px-2 py-1 rounded-lg text-sm">Mang về</span> : 
+                       <span className="bg-primary-500/10 text-primary-400 px-2 py-1 rounded-lg text-sm">Giao hàng</span>}
                       {isPriority && <AlertCircle className="w-5 h-5 text-rose-500 animate-pulse" />}
                     </h3>
-                    <div className="text-sm text-stone-500 flex items-center gap-1 mt-1">
+                    <div className="text-sm text-stone-400 flex items-center gap-1 mt-1">
                       <Clock className="w-4 h-4" />
                       {new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                     </div>
@@ -239,8 +239,8 @@ const KitchenPage = () => {
                     onClick={() => togglePriority(order._id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border ${
                       isPriority 
-                        ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' 
-                        : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100'
+                        ? 'bg-rose-500/10 text-rose-500 border-rose-500/30 hover:bg-rose-500/20' 
+                        : 'bg-[#21262d] text-stone-400 border-[#30363d] hover:bg-[#30363d]'
                     }`}
                   >
                     Ưu tiên
@@ -249,12 +249,12 @@ const KitchenPage = () => {
 
                 <div className="space-y-4">
                   {activeItems.map((item) => (
-                    <div key={item._id} className="flex gap-4 p-4 rounded-2xl bg-stone-50 border border-stone-100">
-                      <div className="font-bold text-xl text-primary-600 bg-white w-10 h-10 flex items-center justify-center rounded-xl shadow-sm">
+                    <div key={item._id} className="flex gap-4 p-4 rounded-2xl bg-[#21262d] border border-[#30363d]">
+                      <div className="font-bold text-xl text-amber-500 bg-[#161b22] border border-[#30363d] w-10 h-10 flex items-center justify-center rounded-xl shadow-sm">
                         {item.quantity}
                       </div>
                       <div className="flex-grow">
-                        <h4 className="font-bold text-stone-900">{item.menuItem?.name}</h4>
+                        <h4 className="font-bold text-white">{item.menuItem?.name}</h4>
                         {item.note && (
                           <div className="text-sm text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded flex inline-block w-fit mt-1">
                             Lưu ý: {item.note}
@@ -298,37 +298,37 @@ const KitchenPage = () => {
         /* Aggregated View */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {aggregatedItems.map((agg, idx) => (
-            <div key={idx} className="bg-white rounded-3xl p-6 border-2 border-stone-100 shadow-sm flex flex-col h-full">
+            <div key={idx} className="bg-[#161b22] rounded-3xl p-6 border-2 border-[#30363d] shadow-sm flex flex-col h-full">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-display font-bold text-stone-900 line-clamp-2 pr-4">
+                <h3 className="text-xl font-display font-bold text-white line-clamp-2 pr-4">
                   {agg.menuItem?.name}
                 </h3>
-                <div className="text-3xl font-black text-primary-600 bg-primary-50 px-4 py-2 rounded-2xl">
+                <div className="text-3xl font-black text-amber-500 bg-[#21262d] border border-[#30363d] px-4 py-2 rounded-2xl">
                   {agg.totalQuantity}
                 </div>
               </div>
               
               {agg.note && (
-                <div className="text-sm text-amber-600 font-medium bg-amber-50 px-3 py-2 rounded-xl mb-4 border border-amber-100">
+                <div className="text-sm text-amber-500 font-medium bg-amber-500/10 px-3 py-2 rounded-xl mb-4 border border-amber-500/30">
                   Ghi chú chung: {agg.note}
                 </div>
               )}
 
                 <div className="flex-grow">
-                  <div className="text-sm text-stone-500 mb-2 font-medium">Gồm các đơn:</div>
+                  <div className="text-sm text-stone-400 mb-2 font-medium">Gồm các đơn:</div>
                   <div className="flex flex-wrap gap-2 mb-6">
                     {agg.tables.map((t, i) => (
-                      <span key={i} className="px-3 py-1 bg-stone-100 text-stone-700 font-bold text-sm rounded-lg border border-stone-200 flex items-center gap-1">
+                      <span key={i} className="px-3 py-1 bg-[#21262d] text-stone-300 font-bold text-sm rounded-lg border border-[#30363d] flex items-center gap-1">
                         {t.orderType === 'tai_ban' ? `Bàn ${t.tableNumber}` : 
-                         t.orderType === 'mang_ve' ? <span className="text-amber-600">Mang về</span> : 
-                         <span className="text-primary-600">Giao hàng</span>} 
+                         t.orderType === 'mang_ve' ? <span className="text-amber-500">Mang về</span> : 
+                         <span className="text-primary-400">Giao hàng</span>} 
                         (x{t.quantity})
                       </span>
                     ))}
                   </div>
                 </div>
 
-              <div className="pt-4 border-t border-stone-100 mt-auto">
+              <div className="pt-4 border-t border-[#30363d] mt-auto">
                 {agg.status === 'cho_xac_nhan' && (
                   <button
                     onClick={() => handleAggregatedAction(agg, 'dang_che_bien')}

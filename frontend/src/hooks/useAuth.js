@@ -2,8 +2,11 @@ import { useAuthStore } from '../store/authStore';
 import authService from '../services/auth.service';
 import toast from 'react-hot-toast';
 
+import { useNavigate } from 'react-router-dom';
+
 const useAuth = () => {
   const { user, token, setAuth, logout: storeLogout } = useAuthStore();
+  const navigate = useNavigate();
 
   const login = async (email, password) => {
     const response = await authService.login({ email, password });
@@ -20,6 +23,7 @@ const useAuth = () => {
   const logout = () => {
     storeLogout();
     toast.success('Đã đăng xuất');
+    navigate('/');
   };
 
   return { user, token, login, register, logout, isAuthenticated: !!token };
