@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { TableService } from '../../services/table.service';
-import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2, ListChecks, CheckSquare } from 'lucide-react';
+import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2, ListChecks, CheckSquare, LayoutGrid } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
