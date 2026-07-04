@@ -8,6 +8,7 @@ const menuItemSchema = new mongoose.Schema({
   image:       { type: String, default: null },
   isAvailable: { type: Boolean, default: true },
   prepareTime: { type: Number, default: 15 }, // phút
+  variants:    [{ type: String }], // Mảng các vị, ví dụ: ['Dâu', 'Vani']
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

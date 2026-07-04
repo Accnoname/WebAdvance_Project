@@ -5,6 +5,7 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
   price:    { type: Number, required: true },   // snapshot giá lúc đặt
   note:     { type: String, default: '' },
+  variant:  { type: String, default: null },
   status:   {
     type: String,
     enum: ['cho_xac_nhan', 'dang_che_bien', 'hoan_thanh', 'huy'],
@@ -13,7 +14,8 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  table:       { type: mongoose.Schema.Types.ObjectId, ref: 'Table', required: true },
+  orderType:   { type: String, enum: ['tai_ban', 'mang_ve'], default: 'tai_ban' },
+  table:       { type: mongoose.Schema.Types.ObjectId, ref: 'Table' }, // Optional for 'mang_ve'
   customer:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   items:       [orderItemSchema],
   orderStatus: {

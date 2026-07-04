@@ -69,6 +69,9 @@ npm run dev
 - **Backend API:** `http://localhost:3000`
 - **Frontend App:** `http://localhost:5173`
 
+### 5. Test Accounts
+For testing purposes, please refer to the [Test Accounts Documentation](docs/TEST_ACCOUNTS.md) for the default Email and Password combinations for each role (Manager, Staff, Customer).
+
 ---
 
 ## 📁 Project Architecture

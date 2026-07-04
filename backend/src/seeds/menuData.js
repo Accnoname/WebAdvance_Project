@@ -77,6 +77,16 @@ const menuItems = [
     isAvailable: true
   },
   {
+    name: 'Kem Gelato Ý (Tự Chọn Vị)',
+    description: 'Kem Gelato thủ công mềm mịn, mang hương vị nguyên bản. Vui lòng chọn vị khi đặt món.',
+    category: 'trang_mieng',
+    price: 55000,
+    image: 'https://images.unsplash.com/photo-1570197781417-0a5f08d519b5?q=80&w=600&auto=format&fit=crop',
+    prepareTime: 5,
+    variants: ['Dâu tây', 'Vani Madagascar', 'Socola Bỉ', 'Trà xanh Matcha'],
+    isAvailable: true
+  },
+  {
     name: 'Lẩu Chua Cá Lóc',
     description: 'Lẩu chua me thanh vị, cá lóc đồng tươi sống, rau muống non và giá đỗ giòn.',
     category: 'chinh',

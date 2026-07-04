@@ -5,7 +5,7 @@ const CustomerLayout = () => {
   return (
     <div className="min-h-screen bg-[#1a1208] text-[#f5e6c8] font-body selection:bg-primary-500 selection:text-white">
       <Navbar />
-      <main>
+      <main className="pt-24 pb-12">
         <Outlet />
       </main>
     </div>
