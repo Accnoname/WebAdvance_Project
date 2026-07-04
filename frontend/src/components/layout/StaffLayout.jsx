@@ -1,10 +1,48 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay, LayoutGrid } from 'lucide-react';
+import useSocket from '../../hooks/useSocket';
+import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay, LayoutGrid, BellRing } from 'lucide-react';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const StaffLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const socket = useSocket('staff');
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    socket.on('staff:called', (data) => {
+      toast.custom((t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-enter' : 'animate-leave'
+          } max-w-md w-full bg-white shadow-xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 border-l-4 border-amber-500 p-4`}
+        >
+          <div className="flex items-start gap-4 w-full">
+            <div className="flex-shrink-0 bg-amber-100 p-3 rounded-full">
+              <BellRing className="w-6 h-6 text-amber-600 animate-bounce" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-stone-900 mb-1">Bàn {data.tableNumber} Đang Gọi!</p>
+              <p className="text-sm text-stone-600">{data.reason}</p>
+            </div>
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-lg transition-colors"
+            >
+              Đã nhận
+            </button>
+          </div>
+        </div>
+      ), { duration: 15000 }); // Hiển thị 15 giây
+    });
+
+    return () => {
+      socket.off('staff:called');
+    };
+  }, [socket]);
 
   const navItems = [
     { name: 'Dashboard',     path: '/staff/dashboard', icon: LayoutGrid },

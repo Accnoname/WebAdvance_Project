@@ -16,6 +16,12 @@ const initSocket = (server) => {
     socket.on('join-staff', () => socket.join('staff'));
     socket.on('join-table', (tableId) => socket.join(`table:${tableId}`));
 
+    // Lắng nghe sự kiện khách hàng gọi nhân viên
+    socket.on('table:call-staff', (data) => {
+      // Bắn thông báo cho tất cả nhân viên
+      io.to('staff').emit('staff:called', data);
+    });
+
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`);
     });

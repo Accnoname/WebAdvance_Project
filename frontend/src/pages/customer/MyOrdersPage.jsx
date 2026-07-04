@@ -17,6 +17,10 @@ const MyOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const { tableId } = useCartStore();
   
+  // States for Service Call
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [selectedOrderForService, setSelectedOrderForService] = useState(null);
+
   // Listen to table specific updates
   const socket = useSocket(tableId ? `table:${tableId}` : null);
 
@@ -59,14 +63,29 @@ const MyOrdersPage = () => {
   const fetchMyOrders = async () => {
     try {
       setLoading(true);
-      // Fetch personal order history
-      const response = await OrderService.getMyOrders();
-      setOrders(response.data);
+      const res = await OrderService.getMyOrders();
+      if (res.success) {
+        setOrders(res.data);
+      }
     } catch (error) {
       toast.error('Không thể tải lịch sử đơn hàng');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCallStaff = (reason) => {
+    if (!socket || !selectedOrderForService) return;
+    
+    socket.emit('table:call-staff', {
+      tableNumber: selectedOrderForService.table?.tableNumber,
+      orderId: selectedOrderForService._id,
+      reason
+    });
+    
+    toast.success('Đã gọi nhân viên. Vui lòng đợi trong giây lát!');
+    setShowServiceModal(false);
+    setSelectedOrderForService(null);
   };
 
   if (loading) {
@@ -186,7 +205,10 @@ const MyOrdersPage = () => {
             {order.orderStatus !== 'hoan_thanh' && order.orderStatus !== 'da_huy' && (
               <div className="mt-8 pt-6 border-t border-stone-100 flex gap-4">
                 <button
-                  onClick={() => toast('Tính năng Gọi Nhân Viên đang được phát triển!')}
+                  onClick={() => {
+                    setSelectedOrderForService(order);
+                    setShowServiceModal(true);
+                  }}
                   className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
                 >
                   <AlertCircle className="w-5 h-5" />
@@ -203,6 +225,39 @@ const MyOrdersPage = () => {
           </div>
         ))}
       </div>
+
+      {/* Service Modal */}
+      {showServiceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f0a05]/80 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-fade-in-up">
+            <h3 className="text-2xl font-black text-stone-900 mb-6 text-center">Bạn cần hỗ trợ gì?</h3>
+            <div className="space-y-3">
+              {[
+                { label: 'Thêm muỗng, đũa, nĩa', icon: '🍴' },
+                { label: 'Lấy thêm nước chấm', icon: '🥣' },
+                { label: 'Dọn dẹp bàn', icon: '🧹' },
+                { label: 'Cần tư vấn thêm', icon: '💁' },
+                { label: 'Khác', icon: '✨' },
+              ].map((reason, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleCallStaff(reason.label)}
+                  className="w-full p-4 flex items-center gap-3 bg-stone-50 hover:bg-primary-50 hover:text-primary-600 border border-stone-100 hover:border-primary-200 rounded-xl font-bold text-stone-700 transition-colors"
+                >
+                  <span className="text-xl">{reason.icon}</span>
+                  {reason.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowServiceModal(false)}
+              className="w-full mt-6 py-3 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl font-bold transition-colors"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
