@@ -11,6 +11,7 @@ const register = async (userData) => {
       resolve(doc);
     });
   });
+
   if (existingUser) {
     throw new AppError('Email đã được sử dụng', 409);
   }
@@ -43,6 +44,7 @@ const login = async (email, password) => {
       resolve(doc);
     });
   });
+
   if (!user) {
     throw new AppError('Email hoặc mật khẩu không đúng', 401);
   }
