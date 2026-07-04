@@ -96,10 +96,15 @@ const TablesPage = () => {
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">Sơ Đồ Bàn</h1>
-          <p className="text-stone-500 text-sm mt-1">Quản lý trạng thái và mã QR gọi món</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white p-6 rounded-3xl shadow-sm border border-stone-200/60 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center border border-primary-100">
+            <LayoutGrid className="w-7 h-7 text-primary-600" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-stone-900 tracking-tight">Sơ Đồ Bàn</h1>
+            <p className="text-stone-500 font-medium mt-1">Quản lý trạng thái và mã QR gọi món</p>
+          </div>
         </div>
         
         <button
@@ -107,12 +112,12 @@ const TablesPage = () => {
             setIsEditMode(!isEditMode);
             setSelectedTables([]);
           }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 border
+          className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-200 border
             ${isEditMode 
-              ? 'bg-primary-500 text-white border-primary-500 shadow-sm' 
-              : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50 hover:border-primary-500/40 shadow-sm'}`}
+              ? 'bg-primary-500 text-white border-primary-500 shadow-sm active:scale-95' 
+              : 'bg-stone-50 text-stone-600 border-stone-200 hover:text-stone-900 hover:bg-stone-100 active:scale-95'}`}
         >
-          {isEditMode ? <CheckSquare className="w-4 h-4" /> : <ListChecks className="w-4 h-4" />}
+          {isEditMode ? <CheckSquare className="w-5 h-5" /> : <ListChecks className="w-5 h-5" />}
           {isEditMode ? 'Hủy chỉnh sửa' : 'Bật chế độ chỉnh sửa'}
         </button>
       </div>
@@ -148,8 +153,8 @@ const TablesPage = () => {
                 return (
                   <div
                     key={table._id}
-                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 bg-white shadow-sm
-                      ${isSelected ? 'border-primary-500 bg-primary-50' : 'border-stone-200 hover:border-primary-500/50'}`}
+                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 rounded-3xl border transition-all duration-200 bg-white shadow-sm
+                      ${isSelected ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500/20' : 'border-stone-200/60 hover:border-primary-500/50'}`}
                     onClick={() => isEditMode && toggleTableSelection(table._id)}
                   >
                     {/* Table Info */}
@@ -162,34 +167,34 @@ const TablesPage = () => {
                           className="w-5 h-5 rounded border-stone-300 bg-white text-primary-500 focus:ring-primary-500/30 flex-shrink-0"
                         />
                       )}
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm flex-shrink-0 ${config.bg}`}>
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm flex-shrink-0 ${config.bg}`}>
                         {isUpdating
-                          ? <Loader2 className={`w-5 h-5 animate-spin ${config.text}`} />
-                          : <span className={`text-xl font-black ${config.text}`}>{table.tableNumber}</span>
+                          ? <Loader2 className={`w-6 h-6 animate-spin ${config.text}`} />
+                          : <span className={`text-2xl font-black ${config.text}`}>{table.tableNumber}</span>
                         }
                       </div>
                       
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-stone-900 text-base">Bàn {table.tableNumber}</span>
-                          <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md border ${config.bg} ${config.text}`}>
-                            <Icon className="w-3 h-3" />
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-black text-stone-900 text-xl">Bàn {table.tableNumber}</span>
+                          <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border ${config.bg} ${config.text}`}>
+                            <Icon className="w-3.5 h-3.5" />
                             {config.label}
                           </span>
                         </div>
-                        <div className="text-stone-500 text-sm mt-0.5">{table.capacity} khách</div>
+                        <div className="text-stone-500 text-sm font-medium">{table.capacity} khách</div>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 w-full sm:w-auto" onClick={e => isEditMode && e.stopPropagation()}>
+                    <div className="flex items-center gap-3 w-full sm:w-auto mt-4 sm:mt-0" onClick={e => isEditMode && e.stopPropagation()}>
                       {isEditMode ? (
                         <div className="relative flex-1 sm:flex-none">
                           <select
                             value={table.status}
                             onChange={(e) => handleUpdateStatusDirect(table._id, e.target.value)}
                             disabled={isUpdating}
-                            className={`w-full sm:w-40 appearance-none bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 pr-8 text-sm font-bold focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors disabled:opacity-50 text-stone-700 shadow-sm`}
+                            className={`w-full sm:w-48 appearance-none bg-stone-50 border border-stone-200/60 rounded-xl px-4 py-3 pr-10 text-sm font-bold focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all disabled:opacity-50 text-stone-700 shadow-sm cursor-pointer`}
                           >
                             {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
                               <option key={key} value={key} className="bg-white text-stone-900">

@@ -59,43 +59,48 @@ const StaffDashboard = () => {
     <div className="min-h-full p-4 sm:p-6 space-y-6 animate-fade-in-up">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
-            Xin chào, <span className="text-primary-600">{user?.name}</span> 👋
-          </h1>
-          <p className="text-stone-500 text-sm mt-1 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            {dateStr} — {timeStr}
-          </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-white p-6 rounded-3xl shadow-sm border border-stone-200/60 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center border border-primary-100">
+            <LayoutGrid className="w-7 h-7 text-primary-600" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-stone-900 tracking-tight">
+              Xin chào, <span className="text-primary-600">{user?.name}</span> 👋
+            </h1>
+            <p className="text-stone-500 font-medium mt-1 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              {dateStr} — {timeStr}
+            </p>
+          </div>
         </div>
         <button
           onClick={fetchTables}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 rounded-xl font-bold text-sm transition-all duration-200 hover:border-primary-500/40 shadow-sm disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-700 rounded-2xl font-bold text-sm transition-all duration-200 hover:text-stone-900 active:scale-95 shadow-sm disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-primary-500' : ''}`} />
           Làm mới
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
-          { label: 'Tổng số bàn',  value: stats.total,    icon: LayoutGrid,    color: 'text-sky-400',     bg: 'bg-sky-500/10 border-sky-500/30' },
-          { label: 'Đang phục vụ', value: stats.serving,  icon: Utensils,      color: 'text-rose-400',    bg: 'bg-rose-500/10 border-rose-500/30' },
-          { label: 'Bàn trống',    value: stats.trong,    icon: CheckCircle2,  color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
-          { label: 'Đã đặt trước', value: stats.reserved, icon: CalendarClock, color: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/30' },
+          { label: 'Tổng số bàn',  value: stats.total,    icon: LayoutGrid,    color: 'text-sky-600',     bg: 'bg-sky-50 border-sky-200' },
+          { label: 'Đang phục vụ', value: stats.serving,  icon: Utensils,      color: 'text-rose-600',    bg: 'bg-rose-50 border-rose-200' },
+          { label: 'Bàn trống',    value: stats.trong,    icon: CheckCircle2,  color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+          { label: 'Đã đặt trước', value: stats.reserved, icon: CalendarClock, color: 'text-amber-600',   bg: 'bg-amber-50 border-amber-200' },
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className={`flex items-center gap-4 p-4 rounded-2xl border ${card.bg} transition-all duration-200 shadow-sm bg-white`}>
-              <div className={`p-2.5 rounded-xl bg-stone-50 border border-stone-100 ${card.color}`}>
-                <Icon className="w-5 h-5" />
+            <div key={card.label} className={`flex items-center gap-5 p-5 rounded-3xl border ${card.bg} transition-all duration-200 shadow-sm bg-white hover:-translate-y-1 hover:shadow-md`}>
+              <div className={`p-3.5 rounded-2xl bg-white shadow-sm border border-stone-100 ${card.color}`}>
+                <Icon className="w-6 h-6" />
               </div>
               <div>
-                <div className={`text-2xl font-black ${card.color}`}>{card.value}</div>
-                <div className="text-xs text-stone-600 font-medium mt-0.5">{card.label}</div>
+                <div className={`text-3xl font-black ${card.color}`}>{card.value}</div>
+                <div className="text-sm text-stone-600 font-bold mt-0.5">{card.label}</div>
               </div>
             </div>
           );
@@ -103,16 +108,16 @@ const StaffDashboard = () => {
       </div>
 
       {/* Table View Section — View Only */}
-      <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-stone-200/60 rounded-3xl overflow-hidden shadow-sm">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-5 border-b border-stone-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary-50 rounded-xl">
-              <LayoutGrid className="w-5 h-5 text-primary-500" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 border-b border-stone-200/60 bg-stone-50/50">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary-50 rounded-2xl border border-primary-100 shadow-sm">
+              <LayoutGrid className="w-6 h-6 text-primary-600" />
             </div>
             <div>
-              <h2 className="font-bold text-stone-900 text-lg">Sơ Đồ Bàn</h2>
-              <p className="text-stone-500 text-xs">Xem nhanh trạng thái bàn hiện tại</p>
+              <h2 className="font-black text-stone-900 text-xl tracking-tight">Sơ Đồ Bàn</h2>
+              <p className="text-stone-500 text-sm font-medium">Xem nhanh trạng thái bàn hiện tại</p>
             </div>
           </div>
 

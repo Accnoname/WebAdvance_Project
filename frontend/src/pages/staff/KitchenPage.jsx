@@ -172,33 +172,33 @@ const KitchenPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 bg-stone-900 text-white p-6 rounded-3xl shadow-xl">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 bg-white text-stone-900 p-6 rounded-3xl shadow-sm border border-stone-200/60">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-            <ChefHat className="w-6 h-6 text-primary-400" />
+          <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center border border-primary-100">
+            <ChefHat className="w-7 h-7 text-primary-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold">Màn Hình Bếp</h1>
-            <p className="text-stone-400 text-sm mt-1">Đồng bộ tự động theo thời gian thực</p>
+            <h1 className="text-3xl font-black tracking-tight text-stone-900">Màn Hình Bếp</h1>
+            <p className="text-stone-500 font-medium mt-1">Đồng bộ tự động theo thời gian thực</p>
           </div>
         </div>
 
-        <div className="flex bg-stone-800 p-1.5 rounded-xl border border-stone-700">
+        <div className="flex bg-stone-100 p-1.5 rounded-2xl border border-stone-200">
           <button
             onClick={() => setViewMode('by-table')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-              viewMode === 'by-table' ? 'bg-primary-500 text-white shadow-lg' : 'text-stone-400 hover:text-white'
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              viewMode === 'by-table' ? 'bg-white text-primary-600 shadow-sm' : 'text-stone-500 hover:text-stone-900'
             }`}
           >
-            <LayoutGrid className="w-4 h-4" /> Theo Bàn
+            <LayoutGrid className="w-5 h-5" /> Theo Bàn
           </button>
           <button
             onClick={() => setViewMode('aggregated')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-              viewMode === 'aggregated' ? 'bg-primary-500 text-white shadow-lg' : 'text-stone-400 hover:text-white'
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              viewMode === 'aggregated' ? 'bg-white text-primary-600 shadow-sm' : 'text-stone-500 hover:text-stone-900'
             }`}
           >
-            <Layers className="w-4 h-4" /> Gộp Món
+            <Layers className="w-5 h-5" /> Gộp Món
           </button>
         </div>
       </div>
@@ -218,8 +218,8 @@ const KitchenPage = () => {
             return (
               <div 
                 key={order._id} 
-                className={`bg-white rounded-3xl p-6 border-2 shadow-sm transition-all duration-300 ${
-                  isPriority ? 'border-rose-500 shadow-rose-500/20' : 'border-stone-100'
+                className={`bg-white rounded-3xl p-6 shadow-sm transition-all duration-300 border-2 ${
+                  isPriority ? 'border-rose-500 shadow-rose-100 ring-4 ring-rose-500/10' : 'border-stone-200/60'
                 }`}
               >
                 <div className="flex justify-between items-start mb-6">
@@ -249,33 +249,33 @@ const KitchenPage = () => {
 
                 <div className="space-y-4">
                   {activeItems.map((item) => (
-                    <div key={item._id} className="flex gap-4 p-4 rounded-2xl bg-stone-50 border border-stone-100">
-                      <div className="font-bold text-xl text-primary-600 bg-white w-10 h-10 flex items-center justify-center rounded-xl shadow-sm">
+                    <div key={item._id} className="flex gap-5 p-5 rounded-2xl bg-stone-50 border border-stone-200/60 shadow-sm items-start">
+                      <div className="font-black text-4xl text-primary-600 bg-white min-w-[70px] h-[70px] flex items-center justify-center rounded-2xl shadow-sm border border-stone-200/60 flex-shrink-0">
                         {item.quantity}
                       </div>
-                      <div className="flex-grow">
-                        <h4 className="font-bold text-stone-900">{item.menuItem?.name}</h4>
+                      <div className="flex-grow pt-1">
+                        <h4 className="font-bold text-2xl text-stone-900 leading-tight">{item.menuItem?.name}</h4>
                         {item.note && (
-                          <div className="text-sm text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded flex inline-block w-fit mt-1">
-                            Lưu ý: {item.note}
+                          <div className="text-base text-rose-700 font-bold bg-rose-100 px-3 py-1 rounded-lg inline-block w-fit mt-2 border border-rose-200">
+                            ⚠️ Ghi chú: {item.note}
                           </div>
                         )}
                         
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-4 flex gap-3">
                           {item.status === 'cho_xac_nhan' && (
                             <button
                               onClick={() => handleUpdateItemStatus(order._id, item._id, 'dang_che_bien')}
-                              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                              className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white text-base font-black rounded-xl shadow-sm active:scale-95 transition-all w-full sm:w-auto"
                             >
-                              Bắt đầu nấu
+                              BẮT ĐẦU NẤU
                             </button>
                           )}
                           {item.status === 'dang_che_bien' && (
                             <button
                               onClick={() => handleUpdateItemStatus(order._id, item._id, 'hoan_thanh')}
-                              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center gap-1"
+                              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-base font-black rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
-                              <CheckCircle2 className="w-4 h-4" /> Xong
+                              <CheckCircle2 className="w-5 h-5" /> XONG MÓN
                             </button>
                           )}
                         </div>
@@ -298,19 +298,19 @@ const KitchenPage = () => {
         /* Aggregated View */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {aggregatedItems.map((agg, idx) => (
-            <div key={idx} className="bg-white rounded-3xl p-6 border-2 border-stone-100 shadow-sm flex flex-col h-full">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-display font-bold text-stone-900 line-clamp-2 pr-4">
+            <div key={idx} className="bg-white rounded-3xl p-6 border-2 border-stone-200/60 shadow-sm flex flex-col h-full">
+              <div className="flex justify-between items-start mb-6">
+                <h3 className="text-2xl font-black text-stone-900 line-clamp-2 pr-4 leading-tight">
                   {agg.menuItem?.name}
                 </h3>
-                <div className="text-3xl font-black text-primary-600 bg-primary-50 px-4 py-2 rounded-2xl">
+                <div className="text-4xl font-black text-primary-600 bg-white min-w-[70px] h-[70px] flex items-center justify-center rounded-2xl shadow-sm border border-stone-200/60 flex-shrink-0">
                   {agg.totalQuantity}
                 </div>
               </div>
               
               {agg.note && (
-                <div className="text-sm text-amber-600 font-medium bg-amber-50 px-3 py-2 rounded-xl mb-4 border border-amber-100">
-                  Ghi chú chung: {agg.note}
+                <div className="text-base text-rose-700 font-bold bg-rose-100 px-3 py-2 rounded-xl mb-4 border border-rose-200">
+                  ⚠️ Ghi chú chung: {agg.note}
                 </div>
               )}
 
@@ -318,7 +318,7 @@ const KitchenPage = () => {
                   <div className="text-sm text-stone-500 mb-2 font-medium">Gồm các đơn:</div>
                   <div className="flex flex-wrap gap-2 mb-6">
                     {agg.tables.map((t, i) => (
-                      <span key={i} className="px-3 py-1 bg-stone-100 text-stone-700 font-bold text-sm rounded-lg border border-stone-200 flex items-center gap-1">
+                      <span key={i} className="px-3 py-1.5 bg-stone-100 text-stone-900 font-bold text-sm rounded-lg border border-stone-200 flex items-center gap-1 shadow-sm">
                         {t.orderType === 'tai_ban' ? `Bàn ${t.tableNumber}` : 
                          t.orderType === 'mang_ve' ? <span className="text-amber-600">Mang về</span> : 
                          <span className="text-primary-600">Giao hàng</span>} 
@@ -328,21 +328,21 @@ const KitchenPage = () => {
                   </div>
                 </div>
 
-              <div className="pt-4 border-t border-stone-100 mt-auto">
+              <div className="pt-5 border-t border-stone-200/60 mt-auto">
                 {agg.status === 'cho_xac_nhan' && (
                   <button
                     onClick={() => handleAggregatedAction(agg, 'dang_che_bien')}
-                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                    className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all"
                   >
-                    Nấu tất cả {agg.totalQuantity} phần
+                    NẤU TẤT CẢ {agg.totalQuantity} PHẦN
                   </button>
                 )}
                 {agg.status === 'dang_che_bien' && (
                   <button
                     onClick={() => handleAggregatedAction(agg, 'hoan_thanh')}
-                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <CheckCircle2 className="w-5 h-5" /> Trả đủ {agg.totalQuantity} phần
+                    <CheckCircle2 className="w-6 h-6" /> TRẢ ĐỦ {agg.totalQuantity} PHẦN
                   </button>
                 )}
               </div>
