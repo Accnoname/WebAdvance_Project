@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { TableService } from '../../services/table.service';
-import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2, ListChecks, CheckSquare, LayoutGrid } from 'lucide-react';
+import { OrderService } from '../../services/order.service';
+import useSocket from '../../hooks/useSocket';
+import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2, ListChecks, CheckSquare, LayoutGrid, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
@@ -15,6 +17,7 @@ const TablesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [tables, setTables] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(null);
   const [selectedQR, setSelectedQR] = useState(null);
@@ -25,25 +28,53 @@ const TablesPage = () => {
   const [bulkStatus, setBulkStatus] = useState('trong');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
+  const socket = useSocket('staff');
+
   useEffect(() => {
-    fetchTables();
-    // Xoá query param sau khi đã đọc
+    fetchData();
     if (searchParams.get('editMode') === 'true') {
       setSearchParams({}, { replace: true });
     }
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('table:status-changed', fetchTables);
+    socket.on('order:new', fetchOrders);
+    socket.on('order:status-changed', fetchOrders);
+
+    return () => {
+      socket.off('table:status-changed');
+      socket.off('order:new');
+      socket.off('order:status-changed');
+    };
+  }, [socket]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([fetchTables(), fetchOrders()]);
+    setLoading(false);
+  };
+
   const fetchTables = async () => {
     try {
-      setLoading(true);
       const response = await TableService.getAll();
       if (response.success) {
         setTables(response.data.sort((a, b) => a.tableNumber - b.tableNumber));
       }
     } catch {
       toast.error('Không thể tải danh sách bàn');
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const response = await OrderService.getAll({ orderStatus: 'dang_xu_ly' });
+      if (response.success) {
+        setActiveOrders(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
     }
   };
 
@@ -150,6 +181,20 @@ const TablesPage = () => {
                 const Icon = config.icon;
                 const isUpdating = updating === table._id;
                 const isSelected = selectedTables.includes(table._id);
+                
+                // Tìm đơn hàng đang xử lý cùa bàn này
+                const activeOrder = activeOrders.find(o => 
+                  (o.table?._id === table._id || o.table === table._id)
+                );
+                
+                let orderStats = null;
+                if (activeOrder) {
+                  const totalItems = activeOrder.items.reduce((sum, item) => sum + item.quantity, 0);
+                  const servedItems = activeOrder.items
+                    .filter(item => item.status === 'hoan_thanh')
+                    .reduce((sum, item) => sum + item.quantity, 0);
+                  orderStats = { total: totalItems, served: servedItems };
+                }
 
                 return (
                   <div
@@ -168,11 +213,16 @@ const TablesPage = () => {
                           className="w-5 h-5 rounded border-stone-300 bg-white text-primary-500 focus:ring-primary-500/30 flex-shrink-0"
                         />
                       )}
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm flex-shrink-0 ${config.bg}`}>
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm flex-shrink-0 relative ${config.bg}`}>
                         {isUpdating
                           ? <Loader2 className={`w-6 h-6 animate-spin ${config.text}`} />
                           : <span className={`text-2xl font-black ${config.text}`}>{table.tableNumber}</span>
                         }
+                        {orderStats && orderStats.served === orderStats.total && (
+                           <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center shadow border-2 border-white">
+                             <CheckCircle2 className="w-4 h-4" />
+                           </div>
+                        )}
                       </div>
                       
                       <div className="flex-1">
@@ -183,7 +233,17 @@ const TablesPage = () => {
                             {config.label}
                           </span>
                         </div>
-                        <div className="text-stone-500 text-sm font-medium">{table.capacity} khách</div>
+                        <div className="text-stone-500 text-sm font-medium flex items-center gap-3">
+                          <span>{table.capacity} khách</span>
+                          {orderStats && (
+                            <>
+                              <span className="text-stone-300">•</span>
+                              <span className={`font-bold ${orderStats.served === orderStats.total ? 'text-green-600' : 'text-amber-600'}`}>
+                                Lên món: {orderStats.served}/{orderStats.total}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
