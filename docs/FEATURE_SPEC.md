@@ -34,11 +34,11 @@ quan_ly     →  Toàn quyền /manager/*
 | # | Tính năng | Mô tả chi tiết | Priority |
 |---|-----------|----------------|----------|
 | K1 | **Landing Page** | Storytelling 4 sections, fade-in animation, parallax | ✅ Done |
-| K2 | **Dynamic Menu** | Hiển thị món. Món `isAvailable=false` tự hiện nhãn "Hết hàng" | 🔥 P1 |
-| K3 | **Giỏ Hàng (Cart)** | Thêm/bớt món. Ghi chú đặc biệt từng món (VD: "không hành") | 🔥 P1 |
-| K4 | **Đặt Đơn** | Chọn bàn (scan QR hoặc tự chọn). Nhập mã giảm giá. | 🔥 P1 |
+| K2 | **Dynamic Menu** | Hiển thị món theo danh mục. | ✅ Done |
+| K3 | **Giỏ Hàng (Cart)** | Thêm/bớt món, tính tổng tiền. | ✅ Done |
+| K4 | **Đặt Đơn** | Chọn bàn (scan QR). | ✅ Done |
 | K5 | **Real-time Tracking** | Thanh tiến trình: `Chờ → Đang chế biến → Sẵn sàng → Hoàn thành` | 🔥 P1 |
-| K6 | **Thanh toán** | VNPay hoặc Yêu cầu thu tiền mặt | 🔥 P1 |
+| K6 | **Thanh toán** | Yêu cầu thu tiền mặt / chuyển khoản thủ công. | ✅ Done |
 
 ---
 
@@ -47,24 +47,24 @@ quan_ly     →  Toàn quyền /manager/*
 ### 2A. Màn Hình Bếp — `/staff/kitchen` (KDS)
 | # | Tính năng | Mô tả chi tiết | Priority |
 |---|-----------|----------------|----------|
-| B1 | **KDS Real-time** | Cards hiển thị ticket món đang chờ. Âm thanh "Ping" | 🔥 P1 |
-| B2 | **1-touch Update** | `[BẮT ĐẦU NẤU]` → Vàng → `[XONG — MANG RA]` → Xanh | 🔥 P1 |
-| B3 | **Checklist (Line Cook)**| Đánh dấu từng món đã xong (Gạch bỏ không xóa) | 🔥 P1 |
-| B4 | **Khóa Món Nhanh** | Nút "Hết nguyên liệu" trên card → ẩn trên màn hình khách | 🔥 P1 |
+| B1 | **KDS Aggregated View** | Gom nhóm món giống nhau. Màn hình siêu sáng. | ✅ Done |
+| B2 | **1-touch Update** | `[NẤU TẤT CẢ]` (Vàng) → `[TRẢ ĐỦ PHẦN]` (Xanh Lá) | ✅ Done |
+| B3 | **Ưu Tiên (Priority)**| Tự động highlight đỏ rực các món/đơn chờ lâu. | ✅ Done |
+| B4 | **Khóa Món Nhanh** | Ẩn món trên màn hình khách (nếu hết nguyên liệu) | 🔥 P1 |
 
 ### 2B. Màn Hình Phục Vụ — `/staff/tables`
 | # | Tính năng | Mô tả chi tiết | Priority |
 |---|-----------|----------------|----------|
-| P1 | **Sơ Đồ Bàn Trực Quan** | Màu Xanh (Trống) / Vàng (Đang dùng) / Đỏ (Chờ thanh toán) | 🔥 P1 |
-| P2 | **Alert Mang Món** | Thông báo nổi bật lên khi bếp bấm "Xong món" | 🔥 P1 |
-| P3 | **Mở Bàn / Gọi Món Hộ**| Nhân viên tự mở bàn và gọi món cho khách thay vì khách tự QR| 🔥 P1 |
+| P1 | **Sơ Đồ Bàn Trực Quan** | Màu Xanh / Vàng / Đỏ. Glassmorphism UI. | ✅ Done |
+| P2 | **QR Gọi Món Nhanh** | Modal QR cực lớn giữa màn hình cho khách quét. | ✅ Done |
+| P3 | **Mở Bàn / Gọi Món Hộ**| Nhân viên tự mở bàn và gọi món cho khách (Offline)| 🔥 P1 |
 
 ### 2C. Màn Hình Điều Phối / Thu Ngân — `/staff/orders`
 | # | Tính năng | Mô tả chi tiết | Priority |
 |---|-----------|----------------|----------|
-| D1 | **Danh Sách Đơn** | Tất cả đơn đang chạy, highlight màu theo trạng thái | 🔥 P1 |
-| D2 | **Xác nhận Giao Món** | Bấm "Đã mang ra bàn" sau khi phục vụ xong | 🔥 P1 |
-| D3 | **Thu Tiền Mặt** | Nút "Đã Thu Tiền Mặt" → ghi nhận payment, bàn → Trống | 🔥 P1 |
+| D1 | **Danh Sách Đơn** | Thiết kế Clean UI, dễ dàng đối chiếu mã đơn. | ✅ Done |
+| D2 | **Cập Nhật Trạng Thái** | Đổi trạng thái `Mới` → `Đang xử lý` → `Hoàn thành` | ✅ Done |
+| D3 | **Đa Dạng Thanh Toán** | Xử lý thanh toán Tiền mặt / Chuyển khoản thủ công. | ✅ Done |
 
 ---
 
