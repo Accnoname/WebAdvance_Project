@@ -1,22 +1,36 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { TableService } from '../../services/table.service';
-import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2 } from 'lucide-react';
+import { Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2, ListChecks, CheckSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_CONFIG = {
-  trong: { label: 'Bàn trống', color: 'bg-green-500', bg: 'bg-green-50 border-green-200', text: 'text-green-700', icon: CheckCircle2 },
-  dang_phuc_vu: { label: 'Đang phục vụ', color: 'bg-rose-500', bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700', icon: Utensils },
-  dat_truoc: { label: 'Đã đặt trước', color: 'bg-amber-500', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', icon: CalendarClock },
-  dong: { label: 'Đóng', color: 'bg-stone-500', bg: 'bg-stone-100 border-stone-200', text: 'text-stone-700', icon: Ban },
+  trong:        { label: 'Bàn trống',     color: 'bg-emerald-500', ring: 'ring-emerald-500/30', bg: 'bg-emerald-500/10 border-emerald-500/30',   text: 'text-emerald-400', icon: CheckCircle2 },
+  dang_phuc_vu: { label: 'Đang phục vụ', color: 'bg-rose-500',    ring: 'ring-rose-500/30',    bg: 'bg-rose-500/10 border-rose-500/30',          text: 'text-rose-400',    icon: Utensils },
+  dat_truoc:    { label: 'Đã đặt trước', color: 'bg-amber-500',   ring: 'ring-amber-500/30',   bg: 'bg-amber-500/10 border-amber-500/30',         text: 'text-amber-400',   icon: CalendarClock },
+  dong:         { label: 'Đóng cửa',     color: 'bg-stone-500',   ring: 'ring-stone-500/30',   bg: 'bg-stone-500/10 border-stone-500/30',         text: 'text-stone-400',   icon: Ban },
 };
 
 const TablesPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(null);
   const [selectedQR, setSelectedQR] = useState(null);
+
+  // Tự động bật Edit Mode nếu navigate từ ?editMode=true
+  const [isEditMode, setIsEditMode] = useState(searchParams.get('editMode') === 'true');
+  const [selectedTables, setSelectedTables] = useState([]);
+  const [bulkStatus, setBulkStatus] = useState('trong');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   useEffect(() => {
     fetchTables();
+    // Xoá query param sau khi đã đọc
+    if (searchParams.get('editMode') === 'true') {
+      setSearchParams({}, { replace: true });
+    }
   }, []);
 
   const fetchTables = async () => {
@@ -24,126 +38,243 @@ const TablesPage = () => {
       setLoading(true);
       const response = await TableService.getAll();
       if (response.success) {
-        // Sort tables by tableNumber
         setTables(response.data.sort((a, b) => a.tableNumber - b.tableNumber));
       }
-    } catch (error) {
+    } catch {
       toast.error('Không thể tải danh sách bàn');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (id, currentStatus) => {
-    // Simple cycle through statuses for demo purposes
-    const statusCycle = ['trong', 'dang_phuc_vu', 'dat_truoc', 'dong'];
-    const nextIndex = (statusCycle.indexOf(currentStatus) + 1) % statusCycle.length;
-    const nextStatus = statusCycle[nextIndex];
-
+  const handleUpdateStatusDirect = async (id, newStatus) => {
+    setUpdating(id);
     try {
-      await TableService.updateStatus(id, nextStatus);
-      toast.success(`Đã cập nhật Bàn sang ${STATUS_CONFIG[nextStatus].label}`);
+      await TableService.updateStatus(id, newStatus);
+      toast.success(`Cập nhật trạng thái bàn thành công`);
       fetchTables();
-    } catch (error) {
+    } catch {
       toast.error('Có lỗi khi cập nhật bàn');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const toggleTableSelection = (id) => {
+    setSelectedTables(prev => 
+      prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
+    );
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedTables.length === tables.length) {
+      setSelectedTables([]);
+    } else {
+      setSelectedTables(tables.map(t => t._id));
+    }
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedTables.length === 0) return toast.error('Vui lòng chọn ít nhất một bàn');
+    
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(
+        selectedTables.map(id => TableService.updateStatus(id, bulkStatus))
+      );
+      toast.success(`Đã cập nhật ${selectedTables.length} bàn thành công`);
+      setSelectedTables([]);
+      setIsEditMode(false);
+      fetchTables();
+    } catch {
+      toast.error('Có lỗi khi cập nhật hàng loạt');
+    } finally {
+      setIsBulkUpdating(false);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 animate-fade-in-up">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-stone-900">Sơ Đồ Bàn</h1>
-          <p className="text-stone-500 mt-2">Quản lý trạng thái bàn ăn và lấy mã QR cho khách</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Sơ Đồ Bàn</h1>
+          <p className="text-stone-400 text-sm mt-1">Quản lý trạng thái và mã QR gọi món</p>
         </div>
         
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 bg-white p-4 rounded-2xl border border-stone-100 shadow-sm">
-          {Object.entries(STATUS_CONFIG).map(([key, config]) => (
-            <div key={key} className="flex items-center gap-2">
-              <span className={`w-3 h-3 rounded-full ${config.color}`}></span>
-              <span className="text-sm font-medium text-stone-600">{config.label}</span>
-            </div>
-          ))}
-        </div>
+        <button
+          onClick={() => {
+            setIsEditMode(!isEditMode);
+            setSelectedTables([]);
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 border
+            ${isEditMode 
+              ? 'bg-amber-500 text-stone-900 border-amber-500' 
+              : 'bg-[#21262d] text-stone-300 border-[#30363d] hover:bg-[#30363d] hover:border-amber-500/40'}`}
+        >
+          {isEditMode ? <CheckSquare className="w-4 h-4" /> : <ListChecks className="w-4 h-4" />}
+          {isEditMode ? 'Hủy chỉnh sửa' : 'Bật chế độ chỉnh sửa'}
+        </button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {tables.map((table) => {
-            const config = STATUS_CONFIG[table.status];
-            const Icon = config.icon;
-
-            return (
-              <div 
-                key={table._id}
-                className={`relative group bg-white rounded-3xl border-2 transition-all duration-300 hover:shadow-xl overflow-hidden ${config.bg}`}
-              >
-                {/* Content */}
-                <div className="p-6 flex flex-col items-center text-center relative z-10">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-sm bg-white border ${config.bg}`}>
-                    <span className="text-2xl font-display font-bold text-stone-900">{table.tableNumber}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <Icon className={`w-4 h-4 ${config.text}`} />
-                    <span className={`font-bold text-sm ${config.text}`}>{config.label}</span>
-                  </div>
-                  <div className="text-stone-500 text-sm font-medium">Sức chứa: {table.capacity} khách</div>
-                </div>
-
-                {/* Hover Actions */}
-                <div className="absolute inset-0 bg-stone-900/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex flex-col items-center justify-center gap-3">
-                  <button
-                    onClick={() => handleUpdateStatus(table._id, table.status)}
-                    className="w-32 py-2 bg-white text-stone-900 rounded-xl text-sm font-bold shadow-lg hover:bg-stone-100 transition-colors"
-                  >
-                    Đổi trạng thái
-                  </button>
-                  {table.qrCode && (
-                    <button
-                      onClick={() => setSelectedQR({ tableNumber: table.tableNumber, qrCode: table.qrCode })}
-                      className="w-32 py-2 bg-primary-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary-600/30 hover:bg-primary-500 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <QrCode className="w-4 h-4" />
-                      Xem QR Code
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* QR Code Modal */}
-      {selectedQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-fade-in-up">
-          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl relative flex flex-col items-center text-center p-8">
-            <button
-              onClick={() => setSelectedQR(null)}
-              className="absolute top-4 right-4 p-2 text-stone-400 hover:bg-stone-100 rounded-full transition-colors"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-
-            <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mb-4">
-              <QrCode className="w-8 h-8" />
+      {/* Main Content */}
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden relative shadow-lg">
+        <div className="p-5">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
             </div>
-            <h3 className="text-2xl font-display font-bold text-stone-900 mb-1">Bàn Số {selectedQR.tableNumber}</h3>
-            <p className="text-stone-500 mb-6">Đưa mã này cho khách hàng quét để gọi món</p>
-            
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-100">
+          ) : (
+            <div className="flex flex-col gap-3">
+              {/* Select All Checkbox */}
+              {isEditMode && (
+                <div className="flex items-center gap-3 p-4 bg-[#0d1117] rounded-xl border border-[#30363d] mb-2 cursor-pointer transition-colors hover:border-[#8b949e]" onClick={toggleAllSelection}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedTables.length === tables.length && tables.length > 0}
+                    readOnly
+                    className="w-5 h-5 rounded border-[#30363d] bg-[#161b22] text-amber-500 focus:ring-amber-500/30"
+                  />
+                  <span className="text-white font-bold text-sm">Chọn tất cả ({selectedTables.length}/{tables.length})</span>
+                </div>
+              )}
+
+              {tables.map((table) => {
+                const config = STATUS_CONFIG[table.status];
+                const Icon = config.icon;
+                const isUpdating = updating === table._id;
+                const isSelected = selectedTables.includes(table._id);
+
+                return (
+                  <div
+                    key={table._id}
+                    className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 bg-[#0d1117] 
+                      ${isSelected ? 'border-amber-500 bg-amber-500/5' : 'border-[#30363d] hover:border-amber-500/50'}`}
+                    onClick={() => isEditMode && toggleTableSelection(table._id)}
+                  >
+                    {/* Table Info */}
+                    <div className="flex items-center gap-4 mb-4 sm:mb-0 w-full sm:w-auto">
+                      {isEditMode && (
+                        <input 
+                          type="checkbox" 
+                          checked={isSelected}
+                          readOnly
+                          className="w-5 h-5 rounded border-[#30363d] bg-[#161b22] text-amber-500 focus:ring-amber-500/30 flex-shrink-0"
+                        />
+                      )}
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm flex-shrink-0 ${config.bg}`}>
+                        {isUpdating
+                          ? <Loader2 className={`w-5 h-5 animate-spin ${config.text}`} />
+                          : <span className={`text-xl font-black ${config.text}`}>{table.tableNumber}</span>
+                        }
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white text-base">Bàn {table.tableNumber}</span>
+                          <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md ${config.bg} ${config.text}`}>
+                            <Icon className="w-3 h-3" />
+                            {config.label}
+                          </span>
+                        </div>
+                        <div className="text-stone-500 text-sm mt-0.5">{table.capacity} khách</div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 w-full sm:w-auto" onClick={e => isEditMode && e.stopPropagation()}>
+                      {isEditMode ? (
+                        <div className="relative flex-1 sm:flex-none">
+                          <select
+                            value={table.status}
+                            onChange={(e) => handleUpdateStatusDirect(table._id, e.target.value)}
+                            disabled={isUpdating}
+                            className={`w-full sm:w-40 appearance-none bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 pr-8 text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors disabled:opacity-50 text-white`}
+                          >
+                            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                              <option key={key} value={key} className="bg-[#161b22] text-white">
+                                {cfg.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-stone-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border ${config.bg} ${config.text}`}>
+                          <Icon className="w-3.5 h-3.5" />
+                          {config.label}
+                        </span>
+                      )}
+
+                      {table.qrCode && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedQR({ tableNumber: table.tableNumber, qrCode: table.qrCode }); }}
+                          className="p-2 bg-[#21262d] hover:bg-[#30363d] text-white rounded-lg border border-[#30363d] transition-colors hover:border-amber-500/50"
+                          title="Xem mã QR"
+                        >
+                          <QrCode className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Bulk Edit Toolbar */}
+        {isEditMode && selectedTables.length > 0 && (
+          <div className="sticky bottom-0 bg-[#21262d] border-t border-[#30363d] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
+            <div className="text-white font-bold">
+              Đã chọn <span className="text-amber-500">{selectedTables.length}</span> bàn
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                className="flex-1 sm:w-48 appearance-none bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm font-bold focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-white"
+              >
+                {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+                  <option key={key} value={key} className="bg-[#161b22] text-white">{cfg.label}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleBulkUpdate}
+                disabled={isBulkUpdating}
+                className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-stone-900 rounded-lg font-black text-sm transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+              >
+                {isBulkUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
+                Áp dụng
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* QR Modal */}
+      {selectedQR && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setSelectedQR(null)}
+        >
+          <div
+            className="bg-[#161b22] border border-[#30363d] rounded-3xl w-full max-w-sm p-8 flex flex-col items-center text-center shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mb-4">
+              <QrCode className="w-7 h-7" />
+            </div>
+            <h3 className="text-2xl font-black text-white mb-1">Bàn Số {selectedQR.tableNumber}</h3>
+            <p className="text-stone-500 text-sm mb-6">Đưa mã này cho khách hàng quét để gọi món</p>
+            <div className="bg-white p-4 rounded-2xl shadow-lg">
               <img src={selectedQR.qrCode} alt="QR Code" className="w-48 h-48" />
             </div>
-
             <button
               onClick={() => setSelectedQR(null)}
-              className="mt-8 w-full py-3 bg-stone-100 text-stone-700 hover:bg-stone-200 rounded-xl font-bold transition-colors"
+              className="mt-6 w-full py-3 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] text-stone-300 rounded-xl font-bold transition-colors"
             >
               Đóng lại
             </button>

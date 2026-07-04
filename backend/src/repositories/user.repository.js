@@ -11,8 +11,7 @@ const UserRepository = {
   },
 
   findByEmailWithPassword: (email, callback) => {
-    User.findOne({ email })
-      .select('+password')
+    User.findOne({ email }).select('+password')
       .then(doc => callback(null, doc))
       .catch(err => callback(err));
   }
