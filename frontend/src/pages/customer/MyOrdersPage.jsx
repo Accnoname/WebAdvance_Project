@@ -181,6 +181,25 @@ const MyOrdersPage = () => {
                 );
               })}
             </div>
+
+            {/* Action Buttons for Active Orders */}
+            {order.orderStatus !== 'hoan_thanh' && order.orderStatus !== 'da_huy' && (
+              <div className="mt-8 pt-6 border-t border-stone-100 flex gap-4">
+                <button
+                  onClick={() => toast('Tính năng Gọi Nhân Viên đang được phát triển!')}
+                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <AlertCircle className="w-5 h-5" />
+                  Gọi Nhân Viên
+                </button>
+                <button
+                  onClick={() => window.location.href = `/payment/${order._id}`}
+                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  💳 Yêu Cầu Thanh Toán
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
