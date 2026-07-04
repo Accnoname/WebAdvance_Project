@@ -137,17 +137,7 @@ const CartPage = () => {
             <Store className={`w-6 h-6 mb-2 ${orderType === 'tai_ban' ? 'text-primary-600' : 'text-stone-400'}`} />
             <span className="font-semibold text-sm">Ăn tại bàn</span>
           </button>
-          <button
-            onClick={() => setOrderType('mang_ve')}
-            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
-              orderType === 'mang_ve'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-stone-100 bg-white text-stone-500 hover:border-stone-200'
-            }`}
-          >
-            <ShoppingBag className={`w-6 h-6 mb-2 ${orderType === 'mang_ve' ? 'text-primary-600' : 'text-stone-400'}`} />
-            <span className="font-semibold text-sm">Mang về</span>
-          </button>
+
           <button
             onClick={() => setOrderType('giao_hang')}
             className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
