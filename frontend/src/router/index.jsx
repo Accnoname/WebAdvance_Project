@@ -33,11 +33,12 @@ import ReportPage from '../pages/manager/ReportPage';
 import ReservationsManagePage from '../pages/manager/ReservationsManagePage';
 
 // Route Guard component
-const PrivateRoute = ({ children, roles }) => {
+const PrivateRoute = ({ children, roles, redirectIfUnauthorized = true }) => {
   const { user, token } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user?.role)) {
-    // Redirect based on role if they hit a wall
+    if (!redirectIfUnauthorized) return <Navigate to="/" replace />;
+    // Redirect về trang chính của role khi bị chặn
     if (user.role === 'quan_ly') return <Navigate to="/manager" replace />;
     if (user.role === 'nhan_vien') return <Navigate to="/staff/kitchen" replace />;
     return <Navigate to="/" replace />;
@@ -57,9 +58,9 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> },
       { path: 'menu', element: <MenuPage /> },
-      { path: 'cart', element: <PrivateRoute roles={['khach_hang']}><CartPage /></PrivateRoute> },
-      { path: 'my-orders', element: <PrivateRoute roles={['khach_hang']}><MyOrdersPage /></PrivateRoute> },
-      { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang']}><PaymentPage /></PrivateRoute> },
+      { path: 'cart', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><CartPage /></PrivateRoute> },
+      { path: 'my-orders', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><MyOrdersPage /></PrivateRoute> },
+      { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><PaymentPage /></PrivateRoute> },
       { path: 'reservation', element: <ReservationPage /> },
     ]
   },
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
       { path: 'kitchen', element: <KitchenPage /> },
       { path: 'tables', element: <TablesPage /> },
       { path: 'orders', element: <StaffOrdersPage /> },
+      { path: 'reservations', element: <ReservationsManagePage /> },
     ]
   },
 

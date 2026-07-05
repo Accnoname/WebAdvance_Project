@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { OrderService } from '../../services/order.service';
-import { TableService } from '../../services/table.service';
+import { ReservationService } from '../../services/reservation.service';
 import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag, Truck, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -13,29 +13,53 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tables, setTables] = useState([]);
-  const [loadingTables, setLoadingTables] = useState(false);
+  const [reservations, setReservations] = useState([]);
+  const [loadingRes, setLoadingRes] = useState(false);
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [orderNote, setOrderNote] = useState('');
 
-  useEffect(() => {
-    if (orderType === 'tai_ban') {
-      fetchTables();
-    }
-  }, [orderType]);
-
-  const fetchTables = async () => {
+  const fetchReservations = async () => {
+    if (!user) return;
+    setLoadingRes(true);
     try {
-      setLoadingTables(true);
-      const res = await TableService.getAll();
+      const res = await ReservationService.getMyReservations();
       if (res.success) {
-        setTables(res.data);
+        setReservations(res.data || []);
       }
     } catch (error) {
-      console.error('Failed to fetch tables:', error);
+      console.error('Failed to fetch reservations:', error);
     } finally {
-      setLoadingTables(false);
+      setLoadingRes(false);
     }
+  };
+
+  useEffect(() => {
+    if (user && orderType === 'tai_ban') {
+      fetchReservations();
+    }
+  }, [user, orderType]);
+
+  const handleSelectTableClick = () => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để kiểm tra đặt bàn!');
+      navigate('/login');
+      return;
+    }
+    const validReservations = reservations.filter(r => r.status === 'da_xac_nhan' || r.status === 'cho_xac_nhan');
+    if (validReservations.length === 0) {
+      toast.error('Bạn chưa có lịch đặt bàn nào. Vui lòng đặt bàn trước!');
+      navigate('/reservation');
+      return;
+    }
+    
+    // Nếu có đặt bàn nhưng chưa được manager gán bàn (table = null)
+    const reservationsWithTable = validReservations.filter(r => r.table);
+    if (reservationsWithTable.length === 0) {
+      toast.error('Đơn đặt bàn của bạn đang chờ xác nhận hoặc chưa được xếp bàn. Vui lòng đợi!');
+      return;
+    }
+
+    setIsTableModalOpen(true);
   };
 
   const handleCheckout = async () => {
@@ -62,7 +86,7 @@ const CartPage = () => {
       setIsSubmitting(true);
       const payload = {
         orderType,
-        tableId: orderType === 'tai_ban' ? tableId : undefined,
+        tableId: orderType === 'tai_ban' ? (typeof tableId === 'object' ? tableId?._id : tableId) : undefined,
         deliveryAddress: orderType === 'giao_hang' ? deliveryAddress : undefined,
         deliveryPhone: orderType === 'giao_hang' ? deliveryPhone : undefined,
         items: items.map(i => ({
@@ -154,15 +178,15 @@ const CartPage = () => {
         {orderType === 'tai_ban' && (
           <div className="animate-fade-in-up">
             <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-semibold text-stone-700">Chọn Bàn</label>
+              <label className="block text-sm font-semibold text-stone-700">Bàn đã đặt</label>
               {tableId && (
                 <span className="text-sm text-primary-600 font-bold bg-primary-50 px-3 py-1 rounded-full">
-                  Đã chọn: Bàn {tables.find(t => t._id === tableId)?.tableNumber}
+                  Đã chọn: Bàn {reservations.find(r => r.table?._id === (typeof tableId === 'object' ? tableId?._id : tableId))?.table?.tableNumber || (typeof tableId === 'object' ? tableId?.tableNumber : tableId)}
                 </span>
               )}
             </div>
             <button
-              onClick={() => setIsTableModalOpen(true)}
+              onClick={handleSelectTableClick}
               className="w-full md:w-1/2 flex items-center justify-center gap-2 px-4 py-3 bg-stone-50 border border-stone-200 hover:border-primary-300 rounded-xl text-stone-900 font-bold transition-colors shadow-sm"
             >
               🗺️ Bấm để chọn bàn
@@ -306,14 +330,11 @@ const CartPage = () => {
     {/* Table Selection Modal */}
     {isTableModalOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-        <div className="bg-white rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl animate-fade-in-up">
+        <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in-up">
           <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
             <div>
-              <h2 className="text-2xl font-bold text-stone-900">Sơ đồ chọn bàn</h2>
-              <div className="flex gap-4 mt-2 text-sm">
-                <span className="flex items-center gap-1"><div className="w-4 h-4 bg-white border border-stone-200 rounded"></div> Trống</span>
-                <span className="flex items-center gap-1"><div className="w-4 h-4 bg-rose-500 rounded text-white flex items-center justify-center text-[10px]">X</div> Đã có khách</span>
-              </div>
+              <h2 className="text-2xl font-bold text-stone-900">Chọn bàn đã đặt của bạn</h2>
+              <p className="text-stone-500 text-sm mt-1">Dựa trên các đơn đặt bàn đã được nhà hàng xác nhận</p>
             </div>
             <button onClick={() => setIsTableModalOpen(false)} className="p-2 text-stone-400 hover:text-stone-600 bg-white rounded-full shadow-sm hover:shadow">
               <X className="w-6 h-6" />
@@ -321,35 +342,33 @@ const CartPage = () => {
           </div>
           
           <div className="p-6 max-h-[60vh] overflow-y-auto">
-            {loadingTables ? (
+            {loadingRes ? (
               <div className="flex justify-center py-10 text-stone-500">
                 <Loader2 className="w-8 h-8 animate-spin" />
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {tables.map(t => {
-                  const isAvailable = t.status === 'trong';
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {reservations.filter(r => r.status === 'da_xac_nhan' && r.table).map(r => {
+                  const t = r.table;
                   const isSelected = tableId === t._id;
                   
                   return (
                     <button
-                      key={t._id}
-                      disabled={!isAvailable}
+                      key={r._id}
                       onClick={() => {
                         setTable(t._id);
                         setIsTableModalOpen(false);
                       }}
                       className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl border-2 transition-all p-2 ${
-                        !isAvailable 
-                          ? 'bg-rose-500 border-rose-600 opacity-90 cursor-not-allowed text-white shadow-inner' 
-                          : isSelected
-                            ? 'bg-primary-50 border-primary-500 text-primary-700 shadow-md scale-105'
-                            : 'bg-white border-stone-200 hover:border-primary-300 hover:shadow text-stone-700'
+                        isSelected
+                          ? 'bg-primary-50 border-primary-500 text-primary-700 shadow-md scale-105'
+                          : 'bg-white border-stone-200 hover:border-primary-300 hover:shadow text-stone-700'
                       }`}
                     >
-                      <span className="text-xl font-black mb-1">{t.tableNumber}</span>
-                      <span className={`text-[10px] uppercase font-bold tracking-wider ${!isAvailable ? 'text-rose-100' : 'text-stone-400'}`}>
-                        {t.capacity} chỗ
+                      <span className="text-2xl font-black mb-1">{t.tableNumber}</span>
+                      <span className="text-xs uppercase font-bold text-primary-600 mb-2">Bàn của bạn</span>
+                      <span className="text-[10px] text-stone-400">
+                        Hẹn lúc: {r.reservationTime}
                       </span>
                     </button>
                   );

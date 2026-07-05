@@ -8,6 +8,11 @@ const tableSchema = new mongoose.Schema({
     enum: ['trong', 'dang_phuc_vu', 'dat_truoc', 'dong'],
     default: 'trong'
   },
+  area: {
+    type: String,
+    enum: ['window', 'garden', 'vip', 'main'],
+    default: 'main'
+  },
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
   qrCode:       { type: String, default: null }
 }, { timestamps: true });

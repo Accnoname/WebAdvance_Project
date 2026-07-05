@@ -64,10 +64,18 @@ const seedData = async () => {
         console.error('Lỗi tạo QR:', err);
       }
 
+      const getArea = (index) => {
+        if (index <= 2) return 'window';
+        if (index <= 4) return 'garden';
+        if (index <= 6) return 'vip';
+        return 'main';
+      };
+
       tables.push({
         tableNumber: i,
         capacity: i <= 4 ? 2 : (i <= 8 ? 4 : 8),
         status: i === 3 ? 'dang_phuc_vu' : (i === 5 ? 'dat_truoc' : 'trong'),
+        area: getArea(i),
         qrCode
       });
     }
