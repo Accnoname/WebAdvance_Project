@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
 import useSocket from '../../hooks/useSocket';
-import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay, LayoutGrid, BellRing } from 'lucide-react';
+import { LogOut, LayoutDashboard, UtensilsCrossed, MonitorPlay, LayoutGrid, BellRing, CalendarClock } from 'lucide-react';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -49,6 +49,7 @@ const StaffLayout = () => {
     { name: 'Màn Hình Bếp', path: '/staff/kitchen',   icon: MonitorPlay },
     { name: 'Sơ Đồ Bàn',   path: '/staff/tables',    icon: LayoutDashboard },
     { name: 'Điều Phối Đơn', path: '/staff/orders',  icon: UtensilsCrossed },
+    { name: 'Đặt Bàn',       path: '/staff/reservations', icon: CalendarClock },
   ];
 
   return (

@@ -23,4 +23,11 @@ const updateStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { create, getAll, updateStatus };
+const getMyReservations = async (req, res, next) => {
+  try {
+    const data = await ReservationService.getAll({ customerPhone: req.user.phone });
+    res.status(200).json(sendSuccess('Danh sách đặt bàn của tôi', data));
+  } catch (error) { next(error); }
+};
+
+module.exports = { create, getAll, updateStatus, getMyReservations };

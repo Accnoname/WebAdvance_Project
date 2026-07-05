@@ -16,6 +16,7 @@ const ReservationsManagePage = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [selectedTables, setSelectedTables] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -29,6 +30,15 @@ const ReservationsManagePage = () => {
         TableService.getAll()
       ]);
       setReservations(resData.data);
+      
+      const initialSelected = {};
+      resData.data.forEach(r => {
+        if (r.status === 'cho_xac_nhan') {
+          initialSelected[r._id] = r.table?._id || '';
+        }
+      });
+      setSelectedTables(initialSelected);
+
       // Lọc ra các bàn trống
       setTables(tableData.data.filter(t => t.status === 'trong').sort((a, b) => a.tableNumber - b.tableNumber));
     } catch (error) {
@@ -135,11 +145,14 @@ const ReservationsManagePage = () => {
                       {res.status === 'cho_xac_nhan' ? (
                         <select 
                           className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary-500 outline-none"
-                          onChange={(e) => handleUpdateStatus(res._id, 'da_xac_nhan', e.target.value)}
-                          defaultValue=""
+                          value={selectedTables[res._id] || ''}
+                          onChange={(e) => setSelectedTables({ ...selectedTables, [res._id]: e.target.value })}
                         >
                           <option value="" disabled>Chọn bàn trống...</option>
-                          {tables.filter(t => t.capacity >= res.partySize).map(t => (
+                          {res.table && (
+                            <option value={res.table._id}>Bàn {res.table.tableNumber} (Khách yêu cầu)</option>
+                          )}
+                          {tables.filter(t => t.capacity >= res.partySize && t._id !== res.table?._id).map(t => (
                             <option key={t._id} value={t._id}>
                               Bàn {t.tableNumber} ({t.capacity} chỗ)
                             </option>
@@ -157,13 +170,30 @@ const ReservationsManagePage = () => {
                     {/* Thao tác */}
                     <td className="px-6 py-4 text-right">
                       {res.status === 'cho_xac_nhan' && (
-                        <button
-                          onClick={() => handleUpdateStatus(res._id, 'da_huy')}
-                          disabled={updatingId === res._id}
-                          className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-bold text-sm transition-colors disabled:opacity-50"
-                        >
-                          Từ chối
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              if (!selectedTables[res._id]) {
+                                toast.error('Vui lòng chọn bàn trước khi đồng ý!');
+                                return;
+                              }
+                              handleUpdateStatus(res._id, 'da_xac_nhan', selectedTables[res._id]);
+                            }}
+                            disabled={updatingId === res._id}
+                            className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 rounded-lg transition-colors disabled:opacity-50"
+                            title="Đồng ý"
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatus(res._id, 'da_huy')}
+                            disabled={updatingId === res._id}
+                            className="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 rounded-lg transition-colors disabled:opacity-50"
+                            title="Từ chối"
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
+                        </div>
                       )}
                       {res.status === 'da_xac_nhan' && (
                         <button
