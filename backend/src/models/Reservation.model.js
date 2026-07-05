@@ -13,6 +13,7 @@ const reservationSchema = new mongoose.Schema({
     default: 'cho_xac_nhan'
   },
   table: { type: mongoose.Schema.Types.ObjectId, ref: 'Table', default: null },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Reservation', reservationSchema);

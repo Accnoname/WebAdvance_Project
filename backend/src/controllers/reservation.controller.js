@@ -1,9 +1,22 @@
 const ReservationService = require('../services/reservation.service');
 const { sendSuccess } = require('../utils/response.util');
+const jwt = require('jsonwebtoken');
 
 const create = async (req, res, next) => {
   try {
-    const data = await ReservationService.create(req.body);
+    const payload = { ...req.body };
+    
+    // Optional Auth: Gán user vào reservation nếu khách đã đăng nhập
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.id) payload.user = decoded.id;
+      } catch (err) {}
+    }
+
+    const data = await ReservationService.create(payload);
     res.status(201).json(sendSuccess('Tạo yêu cầu đặt bàn thành công', data, 201));
   } catch (error) { next(error); }
 };
@@ -25,7 +38,12 @@ const updateStatus = async (req, res, next) => {
 
 const getMyReservations = async (req, res, next) => {
   try {
-    const data = await ReservationService.getAll({ customerPhone: req.user.phone });
+    const conditions = [{ user: req.user.id }];
+    if (req.user.phone) {
+      conditions.push({ customerPhone: req.user.phone });
+    }
+    
+    const data = await ReservationService.getAll({ $or: conditions });
     res.status(200).json(sendSuccess('Danh sách đặt bàn của tôi', data));
   } catch (error) { next(error); }
 };
