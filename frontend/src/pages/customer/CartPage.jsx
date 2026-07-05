@@ -86,7 +86,7 @@ const CartPage = () => {
       setIsSubmitting(true);
       const payload = {
         orderType,
-        tableId: orderType === 'tai_ban' ? tableId : undefined,
+        tableId: orderType === 'tai_ban' ? (typeof tableId === 'object' ? tableId?._id : tableId) : undefined,
         deliveryAddress: orderType === 'giao_hang' ? deliveryAddress : undefined,
         deliveryPhone: orderType === 'giao_hang' ? deliveryPhone : undefined,
         items: items.map(i => ({
@@ -181,7 +181,7 @@ const CartPage = () => {
               <label className="block text-sm font-semibold text-stone-700">Bàn đã đặt</label>
               {tableId && (
                 <span className="text-sm text-primary-600 font-bold bg-primary-50 px-3 py-1 rounded-full">
-                  Đã chọn: Bàn {reservations.find(r => r.table?._id === tableId)?.table?.tableNumber || tableId}
+                  Đã chọn: Bàn {reservations.find(r => r.table?._id === (typeof tableId === 'object' ? tableId?._id : tableId))?.table?.tableNumber || (typeof tableId === 'object' ? tableId?.tableNumber : tableId)}
                 </span>
               )}
             </div>

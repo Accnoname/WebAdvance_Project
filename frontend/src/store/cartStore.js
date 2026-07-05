@@ -45,7 +45,9 @@ export const useCartStore = create((set, get) => ({
   },
 
   setTable: (tableId) => {
-    set({ tableId });
+    // Prevent accidentally storing a full Table object in localStorage
+    const safeTableId = typeof tableId === 'object' && tableId ? tableId._id || tableId.tableNumber : tableId;
+    set({ tableId: safeTableId });
     get().syncCart();
   },
 
