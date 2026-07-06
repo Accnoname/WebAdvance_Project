@@ -1,23 +1,23 @@
 import api from './api';
 
 export const UserService = {
-  getStaff: async () => {
-    const response = await api.get('/users/staff');
+  getAllUsers: async (params) => {
+    const response = await api.get('/users', { params });
     return response;
   },
 
   createStaff: async (data) => {
-    const response = await api.post('/users/staff', data);
+    const response = await api.post('/users', data);
     return response;
   },
 
   updateStaff: async (id, data) => {
-    const response = await api.patch(`/users/staff/${id}`, data);
+    const response = await api.patch(`/users/${id}`, data);
     return response;
   },
 
   deleteStaff: async (id) => {
-    const response = await api.delete(`/users/staff/${id}`);
+    const response = await api.delete(`/users/${id}`);
     return response;
   }
 };

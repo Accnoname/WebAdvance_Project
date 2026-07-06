@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { OrderService } from '../../services/order.service';
 import useSocket from '../../hooks/useSocket';
-import { ClipboardList, Clock, Filter, Loader2, RefreshCcw } from 'lucide-react';
+import { ClipboardList, Clock, Filter, Loader2, RefreshCcw, BellRing, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const STATUS_LABELS = {
@@ -27,13 +27,12 @@ const StaffOrdersPage = () => {
 
     socket.on('order:new', (newOrder) => {
       setOrders(prev => {
-        // Only add if it matches filter
         if (filter === 'all' || newOrder.orderStatus === filter) {
           return [newOrder, ...prev];
         }
         return prev;
       });
-      toast.success(`Có đơn hàng mới từ Bàn ${newOrder.table?.tableNumber}!`);
+      toast.success(`Có đơn hàng mới từ Bàn ${newOrder.table?.tableNumber || '?'}!`);
     });
 
     socket.on('order:status-changed', ({ orderId, status }) => {
@@ -42,9 +41,48 @@ const StaffOrdersPage = () => {
       ));
     });
 
+    socket.on('order:item-updated', ({ orderId, itemId, status }) => {
+      setOrders(prev => prev.map(order => {
+        if (order._id === orderId) {
+          return {
+            ...order,
+            items: order.items.map(item => item._id === itemId ? { ...item, status } : item)
+          };
+        }
+        return order;
+      }));
+    });
+
+    socket.on('notification', (data) => {
+      if (data.type === 'success') {
+        toast.success(
+          <div>
+            <div className="font-bold">{data.title}</div>
+            <div className="text-sm">{data.message}</div>
+          </div>, 
+          { duration: 6000 }
+        );
+      } else {
+        toast(
+          (t) => (
+            <div className="flex gap-3 items-center">
+              <BellRing className="w-6 h-6 text-amber-500 animate-bounce" />
+              <div>
+                <div className="font-bold text-stone-900">{data.title}</div>
+                <div className="text-sm text-stone-600">{data.message}</div>
+              </div>
+            </div>
+          ),
+          { duration: 6000, style: { border: '1px solid #fcd34d', padding: '16px' } }
+        );
+      }
+    });
+
     return () => {
       socket.off('order:new');
       socket.off('order:status-changed');
+      socket.off('order:item-updated');
+      socket.off('notification');
     };
   }, [socket, filter]);
 
@@ -65,7 +103,6 @@ const StaffOrdersPage = () => {
     try {
       await OrderService.updateStatus(id, newStatus);
       toast.success('Cập nhật trạng thái thành công');
-      // Optimistic update
       setOrders(prev => prev.map(order => 
         order._id === id ? { ...order, orderStatus: newStatus } : order
       ));
@@ -73,6 +110,43 @@ const StaffOrdersPage = () => {
       toast.error('Có lỗi xảy ra');
     }
   };
+
+  const handleItemServed = async (orderId, itemId) => {
+    try {
+      await OrderService.updateItemStatus(orderId, itemId, 'hoan_thanh');
+      toast.success('Đã xác nhận lên bàn!');
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi xác nhận');
+    }
+  };
+
+  const handleCancelItem = async (orderId, itemId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy món này không?')) return;
+    try {
+      await OrderService.updateItemStatus(orderId, itemId, 'huy');
+      toast.success('Đã hủy món thành công');
+      fetchOrders(); // Tải lại để cập nhật tổng tiền
+    } catch (error) {
+      toast.error('Không thể hủy món này (có thể bếp đã làm xong)');
+    }
+  };
+
+  const itemsToServe = useMemo(() => {
+    const items = [];
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.status === 'cho_phuc_vu') {
+          items.push({
+            ...item,
+            orderId: order._id,
+            tableNumber: order.table?.tableNumber,
+            orderType: order.orderType
+          });
+        }
+      });
+    });
+    return items;
+  }, [orders]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in-up">
@@ -109,6 +183,46 @@ const StaffOrdersPage = () => {
           </button>
         </div>
       </div>
+
+      {itemsToServe.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-black text-stone-900 mb-4 flex items-center gap-2">
+            <BellRing className="w-5 h-5 text-amber-500 animate-pulse" />
+            MÓN CHỜ BƯNG LÊN BÀN ({itemsToServe.length})
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {itemsToServe.map((item, idx) => (
+              <div key={idx} className="bg-amber-50 rounded-2xl p-4 border-2 border-amber-200 shadow-sm flex flex-col h-full">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="font-bold text-lg text-stone-900 leading-tight">
+                    {item.menuItem?.name}
+                  </div>
+                  <div className="font-black text-2xl text-amber-700 bg-amber-100 px-3 py-1 rounded-xl">
+                    x{item.quantity}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  {item.orderType === 'tai_ban' ? (
+                    <span className="inline-flex items-center gap-1 text-sm font-bold bg-stone-900 text-white px-3 py-1 rounded-lg">
+                      Bàn {item.tableNumber || '?'}
+                    </span>
+                  ) : item.orderType === 'mang_ve' ? (
+                    <span className="text-sm font-bold bg-amber-200 text-amber-800 px-3 py-1 rounded-lg">Mang về</span>
+                  ) : (
+                    <span className="text-sm font-bold bg-primary-100 text-primary-700 px-3 py-1 rounded-lg">Giao hàng</span>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleItemServed(item.orderId, item._id)}
+                  className="mt-auto w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 className="w-5 h-5" /> ĐÃ LÊN BÀN
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -164,16 +278,31 @@ const StaffOrdersPage = () => {
                     </td>
                     <td className="px-6 py-5">
                       <ul className="list-none space-y-1">
-                        {order.items.map((item, idx) => (
-                          <li key={idx} className="truncate max-w-[200px] flex items-center gap-2">
-                            <span className="font-black text-stone-900 bg-stone-100 px-1.5 py-0.5 rounded text-xs">{item.quantity}</span>
-                            <span className="font-medium">{item.menuItem?.name}</span>
-                          </li>
-                        ))}
+                        {order.items.map((item, idx) => {
+                           let statusColor = "bg-stone-100";
+                           if (item.status === 'cho_phuc_vu') statusColor = "bg-amber-100 text-amber-700 border border-amber-200";
+                           else if (item.status === 'hoan_thanh') statusColor = "bg-emerald-100 text-emerald-700";
+                           else if (item.status === 'huy') statusColor = "bg-red-100 text-red-700 line-through opacity-50";
+                           
+                           return (
+                            <li key={idx} className="flex items-center gap-2 mb-1.5 group">
+                              <span className={`font-black px-1.5 py-0.5 rounded text-xs ${statusColor}`}>{item.quantity}</span>
+                              <span className={`font-medium text-stone-900 ${item.status === 'huy' ? 'line-through opacity-50' : ''}`}>{item.menuItem?.name}</span>
+                              {item.status === 'cho_phuc_vu' && <span className="text-[10px] uppercase font-black text-amber-600 ml-1">Chờ bưng</span>}
+                              {item.status === 'huy' && <span className="text-[10px] uppercase font-black text-red-600 ml-1">Đã hủy</span>}
+                              
+                              {['cho_xac_nhan', 'dang_che_bien'].includes(item.status) && (
+                                <button 
+                                  onClick={() => handleCancelItem(order._id, item._id)}
+                                  className="opacity-0 group-hover:opacity-100 ml-auto text-[10px] bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded transition-opacity"
+                                >
+                                  Hủy món
+                                </button>
+                              )}
+                            </li>
+                           );
+                        })}
                       </ul>
-                      {order.items.length > 2 && (
-                        <div className="text-xs text-stone-400 mt-2 italic font-medium">...và {order.items.length - 2} món khác</div>
-                      )}
                     </td>
                     <td className="px-6 py-5 font-black text-base text-primary-600">
                       {order.totalAmount.toLocaleString('vi-VN')}đ

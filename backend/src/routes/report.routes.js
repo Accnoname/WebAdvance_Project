@@ -5,5 +5,6 @@ const { authenticate, authorizeRole } = require('../middlewares/auth.middleware'
 
 router.get('/revenue',      authenticate, authorizeRole('quan_ly'), ReportController.getRevenue);
 router.get('/best-sellers', authenticate, authorizeRole('quan_ly'), ReportController.getBestSellers);
+router.get('/dashboard',    authenticate, authorizeRole('quan_ly'), ReportController.getDashboardStats);
 
 module.exports = router;

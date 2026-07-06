@@ -7,6 +7,7 @@ const ReservationRepository = {
   findAllWithDetails: (filter = {}, callback) => {
     Reservation.find(filter)
       .populate('table')
+      .populate('items.menuItem')
       .sort({ createdAt: -1 })
       .then(docs => callback(null, docs))
       .catch(err => callback(err));

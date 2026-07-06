@@ -7,9 +7,9 @@ const { authenticate, authorizeRole } = require('../middlewares/auth.middleware'
 router.use(authenticate);
 router.use(authorizeRole('quan_ly'));
 
-router.get('/staff', UserController.getStaff);
-router.post('/staff', UserController.createStaff);
-router.patch('/staff/:id', UserController.updateStaff);
-router.delete('/staff/:id', UserController.deleteStaff);
+router.get('/', UserController.getAllUsers);
+router.post('/', UserController.createStaff);
+router.patch('/:id', UserController.updateStaff);
+router.delete('/:id', UserController.deleteStaff);
 
 module.exports = router;

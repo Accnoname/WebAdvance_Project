@@ -5,10 +5,27 @@ import { ChefHat, Clock, AlertCircle, CheckCircle2, LayoutGrid, Layers, Bell } f
 import toast from 'react-hot-toast';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
-const STATUS_LABELS = {
-  cho_xac_nhan: { text: 'Chờ nấu', color: 'bg-rose-50 text-rose-700 border-rose-200' },
-  dang_che_bien: { text: 'Đang nấu', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  hoan_thanh: { text: 'Xong', color: 'bg-green-50 text-green-700 border-green-200' }
+const LiveTimer = ({ createdAt, isPriority }) => {
+  const [waitMins, setWaitMins] = useState(0);
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const diff = Math.floor((new Date() - new Date(createdAt)) / 60000);
+      setWaitMins(diff > 0 ? diff : 0);
+    };
+    calculateTime();
+    const interval = setInterval(calculateTime, 60000);
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  const isLate = waitMins >= 20 || isPriority;
+
+  return (
+    <div className={`text-sm font-bold flex items-center gap-1 mt-1 ${isLate ? 'text-rose-600' : 'text-stone-500'}`}>
+      <Clock className="w-4 h-4" />
+      {waitMins === 0 ? 'Vừa xong' : `Đợi ${waitMins} phút`}
+    </div>
+  );
 };
 
 const KitchenPage = () => {
@@ -40,7 +57,6 @@ const KitchenPage = () => {
         </div>
       ), { duration: 4000 });
       
-      // Play sound
       audioRef.current.play().catch(e => console.log('Audio play blocked:', e));
     });
 
@@ -68,11 +84,11 @@ const KitchenPage = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await OrderService.getAll({ orderStatus: 'moi' }); // Or whatever status means active
-      // Filter out orders that are completely done
+      const response = await OrderService.getAll({ orderStatus: 'moi,dang_xu_ly' });
+      // Bếp chỉ quan tâm các đơn có món đang 'cho_xac_nhan' hoặc 'dang_che_bien'
       const activeOrders = response.data.filter(o => 
         o.orderStatus !== 'hoan_thanh' && o.orderStatus !== 'da_huy' &&
-        o.items.some(i => i.status !== 'hoan_thanh' && i.status !== 'huy')
+        o.items.some(i => i.status === 'cho_xac_nhan' || i.status === 'dang_che_bien')
       );
       setOrders(activeOrders);
     } catch (error) {
@@ -123,11 +139,11 @@ const KitchenPage = () => {
 
   // Aggregate items from all active orders
   const aggregatedItems = useMemo(() => {
-    const map = new Map(); // key: menuItemId_note
+    const map = new Map(); // key: menuItemId_note_status
     orders.forEach(order => {
       order.items.forEach(item => {
-        if (item.status === 'hoan_thanh' || item.status === 'huy') return;
-        // Bỏ qua nếu menuItem bị null (món đã bị xóa)
+        // Chỉ hiện lên view gộp nếu nó đang chờ xác nhận hoặc đang nấu
+        if (item.status !== 'cho_xac_nhan' && item.status !== 'dang_che_bien') return;
         if (!item.menuItem || !item.menuItem._id) return;
 
         const key = `${item.menuItem._id}_${item.note || ''}_${item.status}`;
@@ -150,7 +166,6 @@ const KitchenPage = () => {
       });
     });
     return Array.from(map.values()).sort((a, b) => {
-      // Sort by status: cho_xac_nhan -> dang_che_bien
       if (a.status === 'cho_xac_nhan' && b.status !== 'cho_xac_nhan') return -1;
       if (a.status !== 'cho_xac_nhan' && b.status === 'cho_xac_nhan') return 1;
       return b.totalQuantity - a.totalQuantity; // Highest quantity first
@@ -158,7 +173,6 @@ const KitchenPage = () => {
   }, [orders]);
 
   const handleAggregatedAction = async (aggItem, newStatus) => {
-    // Process all instances of this aggregated item
     const promises = aggItem.tables.map(t => 
       OrderService.updateItemStatus(t.orderId, t.itemId, newStatus)
     );
@@ -211,15 +225,20 @@ const KitchenPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {sortedOrders.map((order) => {
             const isPriority = priorities.includes(order._id);
-            const activeItems = order.items.filter(i => i.status !== 'hoan_thanh' && i.status !== 'huy');
+            const activeItems = order.items.filter(i => i.status === 'cho_xac_nhan' || i.status === 'dang_che_bien');
             
+            // Nếu không còn món nào cần bếp nấu thì ẩn card
             if (activeItems.length === 0) return null;
+
+            // Kiểm tra xem đơn đã chờ trên 20 phút chưa để tô đỏ viền
+            const waitMins = Math.floor((new Date() - new Date(order.createdAt)) / 60000);
+            const isLate = waitMins >= 20;
 
             return (
               <div 
                 key={order._id} 
                 className={`bg-white rounded-3xl p-6 shadow-sm transition-all duration-300 border-2 ${
-                  isPriority ? 'border-rose-500 shadow-rose-100 ring-4 ring-rose-500/10' : 'border-stone-200/60'
+                  isPriority || isLate ? 'border-rose-500 shadow-rose-100 ring-4 ring-rose-500/10' : 'border-stone-200/60'
                 }`}
               >
                 <div className="flex justify-between items-start mb-6">
@@ -228,12 +247,9 @@ const KitchenPage = () => {
                       {order.orderType === 'tai_ban' ? `Bàn ${order.table?.tableNumber || '?'}` : 
                        order.orderType === 'mang_ve' ? <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-sm">Mang về</span> : 
                        <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-sm">Giao hàng</span>}
-                      {isPriority && <AlertCircle className="w-5 h-5 text-rose-500 animate-pulse" />}
+                      {(isPriority || isLate) && <AlertCircle className="w-5 h-5 text-rose-500 animate-pulse" />}
                     </h3>
-                    <div className="text-sm text-stone-500 flex items-center gap-1 mt-1">
-                      <Clock className="w-4 h-4" />
-                      {new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
+                    <LiveTimer createdAt={order.createdAt} isPriority={isPriority} />
                   </div>
                   <button
                     onClick={() => togglePriority(order._id)}
@@ -265,17 +281,17 @@ const KitchenPage = () => {
                           {item.status === 'cho_xac_nhan' && (
                             <button
                               onClick={() => handleUpdateItemStatus(order._id, item._id, 'dang_che_bien')}
-                              className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white text-base font-black rounded-xl shadow-sm active:scale-95 transition-all w-full sm:w-auto"
+                              className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 tracking-wide text-base font-black rounded-xl shadow-sm active:scale-95 transition-all w-full sm:w-auto"
                             >
-                              BẮT ĐẦU NẤU
+                              🔥 BẮT ĐẦU NẤU
                             </button>
                           )}
                           {item.status === 'dang_che_bien' && (
                             <button
-                              onClick={() => handleUpdateItemStatus(order._id, item._id, 'hoan_thanh')}
-                              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-base font-black rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+                              onClick={() => handleUpdateItemStatus(order._id, item._id, 'cho_phuc_vu')}
+                              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white tracking-wide text-base font-black rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
-                              <CheckCircle2 className="w-5 h-5" /> XONG MÓN
+                              <CheckCircle2 className="w-5 h-5" /> RA QUẦY PASS
                             </button>
                           )}
                         </div>
@@ -287,7 +303,7 @@ const KitchenPage = () => {
             );
           })}
           
-          {sortedOrders.length === 0 && (
+          {sortedOrders.filter(o => o.items.some(i => i.status === 'cho_xac_nhan' || i.status === 'dang_che_bien')).length === 0 && (
             <div className="col-span-full py-20 text-center text-stone-400">
               <ChefHat className="w-16 h-16 mx-auto mb-4 opacity-20" />
               <p className="text-lg">Bếp đang rảnh rỗi. Chưa có đơn hàng nào!</p>
@@ -332,17 +348,17 @@ const KitchenPage = () => {
                 {agg.status === 'cho_xac_nhan' && (
                   <button
                     onClick={() => handleAggregatedAction(agg, 'dang_che_bien')}
-                    className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all"
+                    className="w-full py-4 bg-amber-500 hover:bg-amber-600 tracking-wide text-stone-950 font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all flex justify-center gap-2 items-center"
                   >
-                    NẤU TẤT CẢ {agg.totalQuantity} PHẦN
+                    🔥 NẤU TẤT CẢ {agg.totalQuantity} PHẦN
                   </button>
                 )}
                 {agg.status === 'dang_che_bien' && (
                   <button
-                    onClick={() => handleAggregatedAction(agg, 'hoan_thanh')}
-                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                    onClick={() => handleAggregatedAction(agg, 'cho_phuc_vu')}
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 tracking-wide text-white font-black text-lg rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    <CheckCircle2 className="w-6 h-6" /> TRẢ ĐỦ {agg.totalQuantity} PHẦN
+                    <CheckCircle2 className="w-6 h-6" /> TRẢ ĐỦ {agg.totalQuantity} PHẦN RA QUẦY
                   </button>
                 )}
               </div>
@@ -362,3 +378,4 @@ const KitchenPage = () => {
 };
 
 export default KitchenPage;
+

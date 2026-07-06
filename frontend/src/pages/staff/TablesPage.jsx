@@ -6,9 +6,10 @@ import { ReservationService } from '../../services/reservation.service';
 import useSocket from '../../hooks/useSocket';
 import {
   Loader2, QrCode, Utensils, CalendarClock, Ban, CheckCircle2,
-  ListChecks, CheckSquare, LayoutGrid, Users, Clock, MapPin, Sparkles, Phone
+  ListChecks, CheckSquare, LayoutGrid, Users, Clock, MapPin, Sparkles, Phone, Receipt
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import formatCurrency from '../../utils/formatCurrency';
 
 const STATUS_CONFIG = {
   trong:        { label: 'Bàn trống',     color: 'bg-emerald-500', ring: 'ring-emerald-500/30', bg: 'bg-emerald-500/10 border-emerald-500/30', text: 'text-emerald-600', icon: CheckCircle2 },
@@ -58,6 +59,7 @@ const TablesPage = () => {
   const [selectedTables, setSelectedTables] = useState([]);
   const [bulkStatus, setBulkStatus] = useState('trong');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [selectedCheckoutOrder, setSelectedCheckoutOrder] = useState(null);
 
   const socket = useSocket('staff');
 
@@ -136,6 +138,18 @@ const TablesPage = () => {
       fetchTables();
     } catch { toast.error('Có lỗi khi cập nhật hàng loạt'); }
     finally { setIsBulkUpdating(false); }
+  };
+
+  const handleCheckout = async (orderId, paymentMethod) => {
+    try {
+      await OrderService.updateStatus(orderId, 'hoan_thanh', paymentMethod);
+      toast.success('Thanh toán thành công! Bàn đã được dọn trống.');
+      setSelectedCheckoutOrder(null);
+      fetchTables();
+      fetchOrders();
+    } catch {
+      toast.error('Có lỗi xảy ra khi thanh toán');
+    }
   };
 
   return (
@@ -411,10 +425,19 @@ const TablesPage = () => {
 
                       {/* Order items preview — khi đang phục vụ */}
                       {table.status === 'dang_phuc_vu' && activeOrder && (
-                        <div className="mx-5 mb-5 p-3 bg-rose-50 border border-rose-100 rounded-2xl">
-                          <div className="flex items-center gap-2 text-rose-600 font-bold text-xs mb-2">
-                            <Utensils className="w-3.5 h-3.5" />
-                            Đang phục vụ — {activeOrder.items.length} loại món
+                        <div className="mx-5 mb-5 p-4 bg-rose-50 border border-rose-100 rounded-2xl">
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center gap-2 text-rose-600 font-bold text-xs">
+                              <Utensils className="w-3.5 h-3.5" />
+                              Đang phục vụ — {activeOrder.items.length} loại món
+                            </div>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setSelectedCheckoutOrder({ ...activeOrder, table }); }}
+                              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+                            >
+                              <Receipt className="w-3.5 h-3.5" />
+                              Tính tiền
+                            </button>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                             {activeOrder.items.slice(0, 5).map((item, i) => (
@@ -500,6 +523,82 @@ const TablesPage = () => {
             >
               Đóng lại
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      {selectedCheckoutOrder && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm"
+          onClick={() => setSelectedCheckoutOrder(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up flex flex-col max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-6 bg-stone-900 text-white flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black">Thanh Toán Bàn {selectedCheckoutOrder.table?.tableNumber}</h3>
+                <p className="text-stone-400 text-sm mt-1">Mã đơn: #{selectedCheckoutOrder._id.slice(-6).toUpperCase()}</p>
+              </div>
+              <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                <Receipt className="w-6 h-6 text-white" />
+              </div>
+            </div>
+
+            {/* Bill Details (Scrollable) */}
+            <div className="p-6 bg-stone-50 overflow-y-auto flex-1">
+              <div className="space-y-4">
+                {selectedCheckoutOrder.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-start border-b border-stone-200/60 pb-4 last:border-0 last:pb-0">
+                    <div className="flex-1">
+                      <div className="font-bold text-stone-900">{item.menuItem?.name || 'Món ăn'}</div>
+                      <div className="text-sm text-stone-500">{item.quantity} x {formatCurrency(item.price)}</div>
+                      {item.note && <div className="text-xs text-stone-400 italic mt-1">{item.note}</div>}
+                    </div>
+                    <div className="font-bold text-stone-900">{formatCurrency(item.price * item.quantity)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total & Action */}
+            <div className="p-6 bg-white border-t border-stone-100">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-stone-500 font-bold uppercase tracking-wider text-sm">Tổng thanh toán</span>
+                <span className="text-3xl font-black text-primary-600">{formatCurrency(selectedCheckoutOrder.totalAmount)}</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => handleCheckout(selectedCheckoutOrder._id, 'tien_mat')}
+                    className="py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold transition-all text-sm flex flex-col items-center justify-center gap-1"
+                  >
+                    <span className="text-xl">💵</span> Tiền mặt
+                  </button>
+                  <button
+                    onClick={() => handleCheckout(selectedCheckoutOrder._id, 'chuyen_khoan')}
+                    className="py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-bold transition-all text-sm flex flex-col items-center justify-center gap-1 border border-blue-200"
+                  >
+                    <span className="text-xl">📱</span> Chuyển khoản
+                  </button>
+                  <button
+                    onClick={() => handleCheckout(selectedCheckoutOrder._id, 'vnpay')}
+                    className="py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold transition-all text-sm flex flex-col items-center justify-center gap-1 border border-indigo-200"
+                  >
+                    <span className="text-xl">💳</span> VNPay
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSelectedCheckoutOrder(null)}
+                  className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-500 rounded-xl font-bold transition-all"
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

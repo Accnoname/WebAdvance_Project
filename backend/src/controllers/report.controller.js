@@ -10,9 +10,16 @@ const getRevenue = async (req, res, next) => {
 
 const getBestSellers = async (req, res, next) => {
   try {
-    const data = await ReportService.getBestSellers();
+    const data = await ReportService.getBestSellers(req.query);
     res.status(200).json(sendSuccess('Món bán chạy', data));
   } catch (error) { next(error); }
 };
 
-module.exports = { getRevenue, getBestSellers };
+const getDashboardStats = async (req, res, next) => {
+  try {
+    const data = await ReportService.getDashboardStats();
+    res.status(200).json(sendSuccess('Thống kê Dashboard', data));
+  } catch (error) { next(error); }
+};
+
+module.exports = { getRevenue, getBestSellers, getDashboardStats };

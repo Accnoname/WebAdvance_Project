@@ -1,4 +1,5 @@
 const UserRepository = require('../repositories/user.repository');
+const User = require('../models/User.model');
 const { hashPassword, comparePassword } = require('../utils/hash.util');
 const { generateToken } = require('../utils/jwt.util');
 const { AppError } = require('../middlewares/error.middleware');
@@ -69,4 +70,45 @@ const login = async (email, password) => {
   return { user, token };
 };
 
-module.exports = { register, login };
+const updateProfile = async (userId, data) => {
+  if (!data.name) {
+    throw new AppError('Họ và tên không được để trống', 400);
+  }
+  const updatedUser = await new Promise((resolve, reject) => {
+    UserRepository.updateById(userId, { name: data.name, phone: data.phone }, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
+  if (!updatedUser) {
+    throw new AppError('Người dùng không tồn tại', 404);
+  }
+  return updatedUser;
+};
+
+const changePassword = async (userId, { oldPassword, newPassword }) => {
+  if (!oldPassword || !newPassword) {
+    throw new AppError('Mật khẩu cũ và mật khẩu mới không được để trống', 400);
+  }
+  if (newPassword.length < 6) {
+    throw new AppError('Mật khẩu mới phải từ 6 ký tự trở lên', 400);
+  }
+
+  const userWithPass = await User.findById(userId).select('+password');
+  if (!userWithPass) {
+    throw new AppError('Người dùng không tồn tại', 404);
+  }
+
+  const isMatch = await comparePassword(oldPassword, userWithPass.password);
+  if (!isMatch) {
+    throw new AppError('Mật khẩu cũ không chính xác', 401);
+  }
+
+  const hashedNewPassword = await hashPassword(newPassword);
+  userWithPass.password = hashedNewPassword;
+  await userWithPass.save();
+
+  return { success: true };
+};
+
+module.exports = { register, login, updateProfile, changePassword };

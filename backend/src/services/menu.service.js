@@ -21,7 +21,12 @@ const getAll = async (query) => {
   const skip = (page - 1) * limit;
 
   // We need to count total for pagination
-  const total = await MenuItemRepository.count(filter);
+  const total = await new Promise((resolve, reject) => {
+    MenuItemRepository.count(filter, (err, count) => {
+      if (err) return reject(err);
+      resolve(count);
+    });
+  });
 
   const data = await new Promise((resolve, reject) => {
     MenuItemRepository.findAll(filter, { skip, limit }, (err, docs) => {

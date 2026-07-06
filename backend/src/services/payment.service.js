@@ -3,6 +3,7 @@ const { createVNPayUrl, verifyVNPaySignature } = require('../utils/vnpay.util');
 const { AppError } = require('../middlewares/error.middleware');
 const Order = require('../models/Order.model');
 const Table = require('../models/Table.model');
+const Voucher = require('../models/Voucher.model');
 const { getIO } = require('../config/socket');
 
 // ─── 1. Tạo thanh toán offline (tiền mặt / chuyển khoản) ───────────────────
@@ -32,7 +33,7 @@ const createOfflinePayment = async (data) => {
   const payment = await new Promise((resolve, reject) => {
     PaymentRepository.create({
       order:       orderId,
-      amount:      order.totalAmount,
+      amount:      order.finalAmount !== undefined && order.finalAmount !== null ? order.finalAmount : order.totalAmount,
       method,                        // 'tien_mat' hoặc 'chuyen_khoan'
       status:      'da_thanh_toan',  // Offline thì xác nhận luôn
       paidAt:      new Date(),
@@ -46,6 +47,11 @@ const createOfflinePayment = async (data) => {
   // Cập nhật trạng thái đơn hàng → hoàn thành
   order.orderStatus = 'hoan_thanh';
   await order.save();
+
+  // Tăng lượt sử dụng của voucher
+  if (order.voucherCode) {
+    await Voucher.updateOne({ code: order.voucherCode.toUpperCase() }, { $inc: { usedCount: 1 } });
+  }
 
   // [C3] Giải phóng bàn sau khi thanh toán offline
   if (order.table) {
@@ -92,7 +98,7 @@ const createVNPayPayment = async (orderId, ipAddr) => {
     payment = await new Promise((resolve, reject) => {
       PaymentRepository.create({
         order:  orderId,
-        amount: order.totalAmount,
+        amount: order.finalAmount !== undefined && order.finalAmount !== null ? order.finalAmount : order.totalAmount,
         method: 'vnpay',
         status: 'cho_thanh_toan',
       }, (err, doc) => {
@@ -107,7 +113,7 @@ const createVNPayPayment = async (orderId, ipAddr) => {
   // Tạo URL redirect VNPay
   const vnpayUrl = createVNPayUrl({
     orderId:     orderId,
-    amount:      order.totalAmount,
+    amount:      order.finalAmount !== undefined && order.finalAmount !== null ? order.finalAmount : order.totalAmount,
     description: `Thanh toan don hang #${orderId}`,
     ipAddr:      ipAddr,
   });
@@ -153,12 +159,20 @@ const handleVNPayCallback = async (vnpayData) => {
 
   // Bước 4: Nếu thành công → cập nhật trạng thái đơn hàng
   if (isSuccess) {
+    const isFirstTimePaid = payment.status !== 'da_thanh_toan';
+
     await Order.findByIdAndUpdate(orderId, {
       orderStatus: 'dang_xu_ly', // Đã thanh toán, bếp bắt đầu làm
     });
 
     // Bước 5: Emit socket thông báo real-time
     const order = await Order.findById(orderId);
+
+    // Tăng lượt sử dụng của voucher nếu là lần đầu thanh toán thành công
+    if (isFirstTimePaid && order && order.voucherCode) {
+      await Voucher.updateOne({ code: order.voucherCode.toUpperCase() }, { $inc: { usedCount: 1 } });
+    }
+
     const io = getIO();
     if (io) {
       io.to('staff').emit('payment:success', {

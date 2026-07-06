@@ -305,6 +305,11 @@ AI phải hỏi về:
 - Phí ship / thuế có tính vào totalAmount không?
 ```
 
+#### Quy tắc chống lặp vô hạn và kiểm soát token của Subagent
+- **Giới hạn số lượt feedback**: Khi AI chính gọi Subagent hoặc khi các Subagent giao tiếp chéo (Worker <-> Auditor), chỉ cho phép sửa đổi và kiểm tra code tối đa **3 lần** (Max 3 feedback cycles).
+- **Ngắt vòng lặp bắt buộc**: Nếu sau 3 lần vẫn chưa thông qua kiểm định hoặc lỗi chưa được sửa xong, Subagent **BẮT BUỘC phải dừng hoạt động ngay lập tức**, ghi lại toàn bộ log lỗi và báo cáo cho người dùng để xử lý thủ công. Tuyệt đối không tự động chạy tiếp.
+- **Tiết kiệm token tối đa**: Chỉ spawn subagent cho các tác vụ thực sự lớn và cần chạy nền song song (như stress test, audit bảo mật toàn diện). Đối với các sửa đổi nhỏ dưới 3 file hoặc lỗi cú pháp đơn giản, Agent chính phải tự xử lý trực tiếp thay vì gọi subagent.
+
 ---
 
 ### 10. Ngôn Ngữ & Giao Tiếp

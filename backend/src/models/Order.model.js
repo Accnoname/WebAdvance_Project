@@ -8,7 +8,7 @@ const orderItemSchema = new mongoose.Schema({
   variant:  { type: String, default: null },
   status:   {
     type: String,
-    enum: ['cho_xac_nhan', 'dang_che_bien', 'hoan_thanh', 'huy'],
+    enum: ['cho_xac_nhan', 'dang_che_bien', 'cho_phuc_vu', 'hoan_thanh', 'huy'],
     default: 'cho_xac_nhan'
   }
 });
@@ -25,9 +25,22 @@ const orderSchema = new mongoose.Schema({
     enum: ['moi', 'dang_xu_ly', 'hoan_thanh', 'da_huy'],
     default: 'moi'
   },
+  paymentMethod: {
+    type: String,
+    enum: ['tien_mat', 'chuyen_khoan', 'vnpay', 'khac'],
+    default: 'tien_mat'
+  },
   totalAmount: { type: Number, required: true },
+  voucherCode: { type: String, default: null },
+  discountAmount: { type: Number, default: 0 },
+  finalAmount: { type: Number, required: true },
   note:        { type: String, default: '' },
-  orderedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  orderedBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  review: {
+    rating: { type: Number, min: 1, max: 5, default: null },
+    comment: { type: String, default: '' },
+    reviewedAt: { type: Date, default: null }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

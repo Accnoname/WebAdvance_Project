@@ -34,28 +34,28 @@ const MenuCard = ({ item, onAddToCart }) => {
   const decreaseQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1));
 
   return (
-    <div className="group relative bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-stone-200/50 transition-all duration-500 flex flex-col h-full border border-stone-100">
+    <div className="group relative bg-[#251b0f] rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-500 flex flex-col h-full border border-stone-800/80">
       {/* Image container with hover overlay */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#1a1208] border-b border-stone-800/80">
         <img
           src={getImageUrl(item.image)}
           alt={item.name}
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
-            !item.isAvailable ? 'grayscale opacity-70' : ''
+            !item.isAvailable ? 'grayscale opacity-50' : ''
           }`}
         />
         
         {/* Hover Overlay for Description */}
-        <div className="absolute inset-0 bg-stone-900/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 text-center">
-          <p className="text-stone-100 text-sm leading-relaxed transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+        <div className="absolute inset-0 bg-[#1a1208]/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 text-center">
+          <p className="text-[#d4c3a3] text-xs font-semibold leading-relaxed transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
             {item.description}
           </p>
         </div>
 
         {/* Availability Badge */}
         {!item.isAvailable && (
-          <div className="absolute inset-0 bg-stone-900/40 flex items-center justify-center backdrop-blur-[2px]">
-            <span className="px-4 py-2 bg-rose-500 text-white font-medium rounded-full text-sm tracking-wide shadow-lg">
+          <div className="absolute inset-0 bg-[#1a1208]/60 flex items-center justify-center backdrop-blur-[2px]">
+            <span className="px-4 py-2 bg-rose-600 text-white font-bold rounded-full text-xs tracking-wide shadow-lg uppercase">
               Đã hết món
             </span>
           </div>
@@ -63,7 +63,7 @@ const MenuCard = ({ item, onAddToCart }) => {
 
         {/* Category Badge */}
         <div className="absolute top-4 left-4 z-10">
-          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md text-stone-700 text-xs font-bold uppercase tracking-wider rounded-xl shadow-sm">
+          <span className="px-3 py-1.5 bg-[#1a1208]/90 backdrop-blur-md text-[#d4a85a] text-[10px] font-bold uppercase tracking-wider rounded-xl border border-stone-800">
             {item.category === 'khai_vi' ? 'Khai vị' :
              item.category === 'chinh' ? 'Món chính' :
              item.category === 'trang_mieng' ? 'Tráng miệng' : 'Thức uống'}
@@ -71,12 +71,12 @@ const MenuCard = ({ item, onAddToCart }) => {
         </div>
       </div>
 
-      <div className="p-6 flex flex-col flex-grow bg-white relative z-20">
+      <div className="p-6 flex flex-col flex-grow bg-[#251b0f] relative z-20">
         <div className="flex justify-between items-start gap-4 mb-4">
-          <h3 className="font-display font-bold text-xl text-stone-800 line-clamp-1">
+          <h3 className="font-display font-bold text-lg text-[#f5e6c8] line-clamp-1 group-hover:text-[#d4a85a] transition-colors">
             {item.name}
           </h3>
-          <span className="font-bold text-primary-600 whitespace-nowrap text-lg">
+          <span className="font-bold text-[#d4a85a] whitespace-nowrap text-base">
             {item.price.toLocaleString('vi-VN')}đ
           </span>
         </div>
@@ -85,17 +85,17 @@ const MenuCard = ({ item, onAddToCart }) => {
           {/* Variants Selector */}
           {item.variants && item.variants.length > 0 && (
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Chọn Vị</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Chọn Vị</label>
+              <div className="flex flex-wrap gap-1.5">
                 {item.variants.map((v) => (
                   <button
                     key={v}
                     onClick={() => setSelectedVariant(v)}
                     disabled={!item.isAvailable}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
                       selectedVariant === v
-                        ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20'
-                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        ? 'bg-[#d4a85a] border-[#d4a85a] text-[#1a1208] shadow-sm shadow-[#d4a85a]/10'
+                        : 'bg-[#1a1208] border-stone-850 text-[#d4c3a3] hover:bg-[#2e2112] hover:text-[#f5e6c8]'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {v}
@@ -109,11 +109,11 @@ const MenuCard = ({ item, onAddToCart }) => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Ghi chú (VD: Ít đá...)"
+              placeholder="Ghi chú thêm (Ít đường, không hành...)"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={!item.isAvailable}
-              className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-[#1a1208] border border-stone-850 text-[#f5e6c8] placeholder-stone-600 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#d4a85a]/25 focus:border-[#d4a85a] transition-colors disabled:opacity-50 font-semibold"
             />
           </div>
         </div>
@@ -121,23 +121,23 @@ const MenuCard = ({ item, onAddToCart }) => {
         {/* Action Row: Quantity + Add Button */}
         <div className="mt-6 flex items-center gap-3">
           {/* Quantity Selector */}
-          <div className="flex items-center bg-stone-100 rounded-xl p-1 border border-stone-200">
+          <div className="flex items-center bg-[#1a1208] rounded-xl p-1 border border-stone-850">
             <button
               onClick={decreaseQuantity}
               disabled={!item.isAvailable || quantity <= 1}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-stone-600 shadow-sm hover:text-primary-600 disabled:opacity-50 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#251b0f] text-[#f5e6c8] shadow-sm hover:text-[#d4a85a] border border-stone-800/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="w-10 text-center font-bold text-stone-800 text-sm">
+            <span className="w-8 text-center font-black text-[#f5e6c8] text-xs">
               {quantity}
             </span>
             <button
               onClick={increaseQuantity}
               disabled={!item.isAvailable}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white text-stone-600 shadow-sm hover:text-primary-600 disabled:opacity-50 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#251b0f] text-[#f5e6c8] shadow-sm hover:text-[#d4a85a] border border-stone-800/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -145,18 +145,18 @@ const MenuCard = ({ item, onAddToCart }) => {
           <button
             onClick={handleAddToCart}
             disabled={!item.isAvailable}
-            className={`flex-grow py-3 px-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`flex-grow py-3 px-4 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
               !item.isAvailable
-                ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
+                ? 'bg-stone-800/40 text-stone-500 cursor-not-allowed border border-stone-800'
                 : isAdded
-                ? 'bg-green-500 text-white shadow-green-500/20'
-                : 'bg-stone-900 text-white hover:bg-primary-600 hover:shadow-lg hover:shadow-primary-600/20 active:scale-95'
+                ? 'bg-green-650 text-white shadow-green-500/10'
+                : 'bg-[#d4a85a] text-[#1a1208] hover:bg-[#c2984a] hover:shadow-md hover:shadow-amber-500/10 active:scale-95'
             }`}
           >
             {isAdded ? (
               <>
                 <Check className="w-4 h-4" />
-                Đã thêm {quantity}
+                Đã đặt {quantity} món
               </>
             ) : (
               'Xác Nhận Đặt Món'

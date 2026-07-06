@@ -14,50 +14,11 @@ import {
 } from 'recharts';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { TableService } from '../../services/table.service';
+import { ReportService } from '../../services/report.service';
+import { OrderService } from '../../services/order.service';
 
 // ─── MOCK DATA ────────────────────────────────────────────────
-const revenueByRange = {
-  today:   [
-    { label: '10:00', amount: 1200000 }, { label: '12:00', amount: 4500000 },
-    { label: '14:00', amount: 3200000 }, { label: '16:00', amount: 2100000 },
-    { label: '18:00', amount: 6800000 }, { label: '20:00', amount: 8900000 },
-    { label: '22:00', amount: 4100000 },
-  ],
-  week:    [
-    { label: 'T2', amount: 28000000 }, { label: 'T3', amount: 32000000 },
-    { label: 'T4', amount: 25000000 }, { label: 'T5', amount: 41000000 },
-    { label: 'T6', amount: 55000000 }, { label: 'T7', amount: 62000000 },
-    { label: 'CN', amount: 48000000 },
-  ],
-  month:   [
-    { label: 'T1', amount: 180000000 }, { label: 'T2', amount: 210000000 },
-    { label: 'T3', amount: 195000000 }, { label: 'T4', amount: 230000000 },
-  ],
-  quarter: [
-    { label: 'Q1', amount: 580000000 }, { label: 'Q2', amount: 640000000 },
-    { label: 'Q3', amount: 720000000 }, { label: 'Q4', amount: 810000000 },
-  ],
-  year:    [
-    { label: '2022', amount: 1800000000 }, { label: '2023', amount: 2200000000 },
-    { label: '2024', amount: 2750000000 },
-  ],
-};
-
-const topItems = [
-  { name: 'Steak Bò Wagyu', sold: 45 },
-  { name: 'Cá Hồi Áp Chảo', sold: 38 },
-  { name: 'Salad Cá Ngừ',   sold: 32 },
-  { name: 'Súp Truffle',     sold: 28 },
-];
-
-const activeOrders = [
-  { id: '#1042', table: 'Bàn 05', time: '12 mins', status: 'dang_nau', amount: 1450000 },
-  { id: '#1043', table: 'Bàn 12', time: '5 mins',  status: 'cho_nau',  amount:  890000 },
-  { id: '#1044', table: 'Bàn 02', time: '2 mins',  status: 'cho_nau',  amount:  450000 },
-  { id: '#1045', table: 'Bàn 08', time: '18 mins', status: 'xong',     amount: 2100000 },
-];
-
-// tableStatusData đã được xóa — dùng API thực
+// ─── ALERTS DATA ────────────────────────────────────────────────
 
 const INITIAL_ALERTS = [
   { id: 1, level: 'critical', icon: Timer,   title: 'Bếp chậm — Ticket quá lâu', desc: 'Bàn 05: Steak Wagyu chờ 22 phút chưa xong', time: '2 phút trước' },
@@ -74,29 +35,6 @@ const DATE_RANGE_OPTIONS = [
   { key: 'year',    label: 'Năm'      },
   { key: 'custom',  label: 'Tùy chỉnh' },
 ];
-
-// Sinh mock data theo khoảng ngày tùy chỉnh
-const generateCustomData = (from, to) => {
-  if (!from || !to) return [];
-  const result = [];
-  const start = new Date(from);
-  const end   = new Date(to);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    result.push({
-      label: `${d.getDate()}/${d.getMonth() + 1}`,
-      amount: Math.floor(Math.random() * 15000000) + 5000000,
-    });
-  }
-  return result;
-};
-
-// Tính tổng / đếm từ chart data
-const computeStats = (data) => {
-  const total   = data.reduce((s, d) => s + d.amount, 0);
-  const orders  = data.reduce((s, d) => s + Math.floor(d.amount / 243000), 0);
-  const aov     = orders > 0 ? Math.round(total / orders) : 0;
-  return { total, orders, aov };
-};
 
 // ─── SUB COMPONENTS ───────────────────────────────────────────
 const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass }) => (
@@ -180,6 +118,21 @@ const DashboardPage = () => {
     dong:         { label: 'Đóng cửa',     dotColor: 'bg-slate-400',  badge: 'bg-slate-100 text-slate-600 border-slate-200',      icon: Ban },
   };
 
+  // ── States Data ──
+  const [chartData, setChartData] = useState([]);
+  const [stats, setStats] = useState({ total: 0, orders: 0, aov: 0 });
+  const [topItems, setTopItems] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalOrdersToday: 0,
+    canceledOrdersToday: 0,
+    cancelRate: 0,
+    activeTables: 0,
+    totalTables: 0,
+    occupancyRate: 0,
+    waitingOrders: 0
+  });
+
   const fetchTables = useCallback(async () => {
     try {
       setTablesLoading(true);
@@ -192,18 +145,54 @@ const DashboardPage = () => {
     }
   }, []);
 
-  useEffect(() => { fetchTables(); }, [fetchTables]);
+  const fetchReportData = useCallback(async () => {
+    try {
+      // Bỏ qua fetch custom range nếu chưa điền đủ form
+      if (dateRange === 'custom' && (!customFrom || !customTo)) return;
 
-  const dismissAlert = (id) => setAlerts(prev => prev.filter(a => a.id !== id));
+      const params = { period: dateRange, customFrom, customTo };
+      
+      const [revRes, topRes, statRes, orderRes] = await Promise.all([
+        ReportService.getRevenue(params).catch(() => ({ success: false })),
+        ReportService.getBestSellers(params).catch(() => ({ success: false })),
+        ReportService.getDashboardStats().catch(() => ({ success: false })),
+        OrderService.getAll().catch(() => ({ success: false }))
+      ]);
 
-  // Quyết định data biểu đồ theo mode
-  const chartData = useMemo(() => {
-    if (dateRange === 'custom') return generateCustomData(customFrom, customTo);
-    return revenueByRange[dateRange] ?? [];
+      if (revRes.success) {
+        setChartData(revRes.data.chartData || []);
+        setStats(revRes.data.summary || { total: 0, orders: 0, aov: 0 });
+      }
+      if (topRes.success) setTopItems(topRes.data || []);
+      if (statRes.success) setDashboardStats(statRes.data || {});
+      
+      if (orderRes.success && orderRes.data) {
+        const active = orderRes.data.filter(o => ['moi', 'dang_xu_ly'].includes(o.orderStatus));
+        const formattedActive = active.map(o => {
+          const timeDiff = Math.floor((new Date() - new Date(o.createdAt)) / 60000);
+          return {
+            id: `#${o._id.slice(-4).toUpperCase()}`,
+            table: o.table?.tableNumber ? `Bàn ${o.table.tableNumber}` : 'Mang đi',
+            time: `${timeDiff} phút`,
+            status: o.orderStatus === 'moi' ? 'cho_nau' : 'dang_nau',
+            amount: o.totalAmount
+          };
+        });
+        setActiveOrders(formattedActive.slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Lỗi lấy dữ liệu báo cáo:', error);
+    }
   }, [dateRange, customFrom, customTo]);
 
-  // Tính KPI dựa trên chartData hiện tại
-  const stats = useMemo(() => computeStats(chartData), [chartData]);
+  useEffect(() => { 
+    fetchTables(); 
+    fetchReportData();
+    const interval = setInterval(fetchReportData, 30000); // Tự động cập nhật sau 30s
+    return () => clearInterval(interval);
+  }, [fetchTables, fetchReportData]);
+
+  const dismissAlert = (id) => setAlerts(prev => prev.filter(a => a.id !== id));
 
   // Label hiển thị cho header
   const periodLabel = useMemo(() => {
@@ -280,15 +269,15 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* KPI GRID — giờ hiển thị số liệu tính từ chartData */}
+        {/* KPI GRID */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           <KPICard title="Tổng Doanh Thu" value={fmtMoney(stats.total)} trend={5.2}  icon={DollarSign}  colorClass="bg-emerald-100 text-emerald-600" />
           <KPICard title="Tổng Số Đơn"    value={fmtNum(stats.orders)}  trend={8.1}  icon={ShoppingBag} colorClass="bg-blue-100 text-blue-600" />
-          <KPICard title="Giá Trị TB / Đơn (AOV)" value={fmtMoney(stats.aov)} trend={3.2}  icon={Target}      colorClass="bg-purple-100 text-purple-600" />
-          <KPICard title="Vòng Quay Bàn"   value="3.2 lần"  trend={-1.4} icon={RotateCcw}   colorClass="bg-cyan-100 text-cyan-600" subtitle="Trung bình mỗi bàn" />
-          <KPICard title="Bàn Đang Bận"   value="18 / 25"  icon={Users}                    colorClass="bg-indigo-100 text-indigo-600" subtitle="Lấp đầy 72%" />
-          <KPICard title="Đơn Chờ Bếp"    value="12"       trend={-2.1} icon={Clock}       colorClass="bg-orange-100 text-orange-600" subtitle="2 đơn chờ quá 15 phút" />
-          <KPICard title="Tỷ Lệ Đơn Hủy"  value="2.8%"     trend={1.2}  icon={Ban}         colorClass="bg-rose-100 text-rose-600" subtitle="4 đơn bị hủy" />
+          <KPICard title="Giá Trị TB / Đơn" value={fmtMoney(stats.aov)} trend={3.2}  icon={Target}      colorClass="bg-purple-100 text-purple-600" />
+          <KPICard title="Đơn Hôm Nay"    value={fmtNum(dashboardStats.totalOrdersToday)} icon={Calendar}   colorClass="bg-cyan-100 text-cyan-600" subtitle={`Hủy: ${dashboardStats.canceledOrdersToday} đơn (${dashboardStats.cancelRate}%)`} />
+          <KPICard title="Bàn Đang Bận"   value={`${dashboardStats.activeTables} / ${dashboardStats.totalTables}`}  icon={Users}                    colorClass="bg-indigo-100 text-indigo-600" subtitle={`Lấp đầy ${dashboardStats.occupancyRate}%`} />
+          <KPICard title="Đơn Đang Chờ Bếp"    value={fmtNum(dashboardStats.waitingOrders)}       trend={-2.1} icon={Clock}       colorClass="bg-orange-100 text-orange-600" subtitle="Cần chế biến" />
+          <KPICard title="Tỷ Lệ Đơn Hủy"  value={`${dashboardStats.cancelRate}%`}     trend={1.2}  icon={Ban}         colorClass="bg-rose-100 text-rose-600" subtitle={`${dashboardStats.canceledOrdersToday} đơn bị hủy`} />
           <KPICard title="TG Chế Biến TB"  value="14 phút"  trend={-5.0} icon={Timer}       colorClass="bg-teal-100 text-teal-600" subtitle="Từ lúc đặt → món lên bàn" />
         </div>
 

@@ -445,6 +445,16 @@ const TABLE_STATUS_STYLES = {
 ❌ Roboto thuần                   — quá corporate, nhàm chán
 ```
 
+### Icons Quy Chuẩn
+```
+✅ Lucide React      → Bắt buộc dùng cho toàn bộ hệ thống
+✅ Độ dày viền icon  → Chỉ dùng stroke-[1.5] hoặc stroke-2 (không dùng nét quá dày)
+✅ Màu sắc           → Đồng bộ theo Persona (Customer: Vàng kim #d4a85a; Staff: trắng/tương phản)
+
+❌ Cấm dùng Emoji hệ thống làm biểu tượng chính trong các thẻ chọn, danh sách của Khách hàng
+   (Gây mất đồng bộ màu sắc và làm giao diện bị nhí nhố, thiếu sang trọng)
+```
+
 ### Kích thước nút tối thiểu (TOÀN HỆ THỐNG)
 ```
 Nút nhỏ (action phụ):    MIN height 36px

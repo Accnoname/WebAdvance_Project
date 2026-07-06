@@ -17,12 +17,14 @@ import CartPage from '../pages/customer/CartPage';
 import MyOrdersPage from '../pages/customer/MyOrdersPage';
 import PaymentPage from '../pages/customer/PaymentPage';
 import ReservationPage from '../pages/customer/ReservationPage';
+import SettingsPage from '../pages/customer/SettingsPage';
 
 // Staff Pages
 import StaffDashboard from '../pages/staff/DashboardPage';
 import KitchenPage from '../pages/staff/KitchenPage';
 import TablesPage from '../pages/staff/TablesPage';
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
+import POSPage from '../pages/staff/POSPage';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/DashboardPage';
@@ -31,6 +33,7 @@ import TableManagePage from '../pages/manager/TableManagePage';
 import StaffManagePage from '../pages/manager/StaffManagePage';
 import ReportPage from '../pages/manager/ReportPage';
 import ReservationsManagePage from '../pages/manager/ReservationsManagePage';
+import VouchersManagePage from '../pages/manager/VouchersManagePage';
 
 // Route Guard component
 const PrivateRoute = ({ children, roles, redirectIfUnauthorized = true }) => {
@@ -62,6 +65,7 @@ const router = createBrowserRouter([
       { path: 'my-orders', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><MyOrdersPage /></PrivateRoute> },
       { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><PaymentPage /></PrivateRoute> },
       { path: 'reservation', element: <ReservationPage /> },
+      { path: 'settings', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><SettingsPage /></PrivateRoute> },
     ]
   },
 
@@ -75,6 +79,7 @@ const router = createBrowserRouter([
       { path: 'kitchen', element: <KitchenPage /> },
       { path: 'tables', element: <TablesPage /> },
       { path: 'orders', element: <StaffOrdersPage /> },
+      { path: 'pos', element: <POSPage /> },
       { path: 'reservations', element: <ReservationsManagePage /> },
     ]
   },
@@ -90,6 +95,7 @@ const router = createBrowserRouter([
       { path: 'staff', element: <StaffManagePage /> },
       { path: 'reports', element: <ReportPage /> },
       { path: 'reservations', element: <ReservationsManagePage /> },
+      { path: 'vouchers', element: <VouchersManagePage /> },
     ]
   }
 ]);

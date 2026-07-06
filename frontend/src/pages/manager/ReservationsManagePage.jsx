@@ -39,8 +39,8 @@ const ReservationsManagePage = () => {
       });
       setSelectedTables(initialSelected);
 
-      // Lọc ra các bàn trống
-      setTables(tableData.data.filter(t => t.status === 'trong').sort((a, b) => a.tableNumber - b.tableNumber));
+      // Hiển thị toàn bộ bàn (đã sắp xếp theo số bàn) để quản lý có thể xếp lịch tương lai
+      setTables(tableData.data.sort((a, b) => a.tableNumber - b.tableNumber));
     } catch (error) {
       toast.error('Lỗi khi tải dữ liệu');
     } finally {

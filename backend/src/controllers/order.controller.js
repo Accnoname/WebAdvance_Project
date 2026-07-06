@@ -47,7 +47,7 @@ const create = async (req, res, next) => {
 
 const updateStatus = async (req, res, next) => {
   try {
-    const data = await OrderService.updateStatus(req.params.id, req.body.status);
+    const data = await OrderService.updateStatus(req.params.id, req.body.status, req.body.paymentMethod);
     res.status(200).json(sendSuccess('Cập nhật trạng thái đơn hàng thành công', data));
   } catch (error) { next(error); }
 };
@@ -59,4 +59,19 @@ const updateItemStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { getAll, getById, getMyOrders, getMyOrderById, create, updateStatus, updateItemStatus };
+const addItems = async (req, res, next) => {
+  try {
+    const data = await OrderService.addItems(req.params.id, req.body.items);
+    res.status(200).json(sendSuccess('Thêm món vào đơn hàng thành công', data));
+  } catch (error) { next(error); }
+};
+
+const submitReview = async (req, res, next) => {
+  try {
+    const { rating, comment } = req.body;
+    const data = await OrderService.submitReview(req.params.id, req.user._id, rating, comment);
+    res.status(200).json(sendSuccess('Gửi đánh giá đơn hàng thành công', data));
+  } catch (error) { next(error); }
+};
+
+module.exports = { getAll, getById, getMyOrders, getMyOrderById, create, updateStatus, updateItemStatus, addItems, submitReview };
