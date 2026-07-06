@@ -3,8 +3,14 @@ const { sendSuccess } = require('../utils/response.util');
 
 const getAll = async (req, res, next) => {
   try {
-    const data = await OrderService.getAll(req.query);
-    res.status(200).json(sendSuccess('Danh sách đơn hàng', data));
+    // [M4] Truyền query object (service sẽ sanitize), nhận về object có phân trang
+    const result = await OrderService.getAll(req.query);
+    res.status(200).json({
+      success: true,
+      message: 'Danh sách đơn hàng',
+      data: result.data,
+      pagination: { page: result.page, limit: result.limit, total: result.total }
+    });
   } catch (error) { next(error); }
 };
 
@@ -19,6 +25,14 @@ const getMyOrders = async (req, res, next) => {
   try {
     const data = await OrderService.getMyOrders(req.user._id);
     res.status(200).json(sendSuccess('Lịch sử đơn hàng của bạn', data));
+  } catch (error) { next(error); }
+};
+
+// [M2] Khách hàng xem chi tiết một đơn của chính mình
+const getMyOrderById = async (req, res, next) => {
+  try {
+    const data = await OrderService.getMyOrderById(req.params.id, req.user._id);
+    res.status(200).json(sendSuccess('Chi tiết đơn hàng', data));
   } catch (error) { next(error); }
 };
 
@@ -45,4 +59,4 @@ const updateItemStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { getAll, getById, getMyOrders, create, updateStatus, updateItemStatus };
+module.exports = { getAll, getById, getMyOrders, getMyOrderById, create, updateStatus, updateItemStatus };

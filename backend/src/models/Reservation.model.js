@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const reservationSchema = new mongoose.Schema({
   customerName: { type: String, required: true },
   customerPhone: { type: String, required: true },
+  // [M8] Liên kết với tài khoản User nếu khách đã đăng nhập (optional)
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   reservationDate: { type: Date, required: true },
   reservationTime: { type: String, required: true },
   partySize: { type: Number, required: true, min: 1 },

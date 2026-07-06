@@ -5,13 +5,30 @@ const { getIO } = require('../config/socket');
 const { AppError } = require('../middlewares/error.middleware');
 
 const OrderService = {
-  getAll: async (filter = {}) => {
-    return await Order.find(filter)
-      .populate('table')
-      .populate('customer', 'name email')
-      .populate('orderedBy', 'name email')
-      .populate('items.menuItem')
-      .sort({ createdAt: -1 });
+  // [M4] Sanitize filter — chỉ cho phép các field an toàn, không nhận operator thô từ query
+  getAll: async (query = {}) => {
+    const filter = {};
+    if (query.orderStatus) filter.orderStatus = query.orderStatus;
+    if (query.orderType)   filter.orderType   = query.orderType;
+    if (query.table)       filter.table       = query.table;
+
+    const page  = parseInt(query.page)  || 1;
+    const limit = parseInt(query.limit) || 20;
+    const skip  = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      Order.find(filter)
+        .populate('table')
+        .populate('customer', 'name email')
+        .populate('orderedBy', 'name email')
+        .populate('items.menuItem')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments(filter)
+    ]);
+
+    return { data, total, page, limit };
   },
 
   getById: async (id) => {
@@ -31,12 +48,35 @@ const OrderService = {
       .sort({ createdAt: -1 });
   },
 
+  // [M2] Lấy chi tiết một đơn hàng — kiểm tra ownership của khách
+  getMyOrderById: async (orderId, userId) => {
+    const order = await Order.findById(orderId)
+      .populate('table')
+      .populate('items.menuItem')
+      .populate('customer', 'name email');
+    if (!order) throw new AppError('Không tìm thấy đơn hàng', 404);
+    // Kiểm tra đơn thuộc về user này
+    const customerId = order.customer?._id?.toString() || order.customer?.toString();
+    const orderedById = order.orderedBy?.toString();
+    if (customerId !== userId.toString() && orderedById !== userId.toString()) {
+      throw new AppError('Bạn không có quyền xem đơn hàng này', 403);
+    }
+    return order;
+  },
+
   create: async (data, user) => {
     // Validate table if orderType is 'tai_ban'
     let table = null;
     if (data.orderType === 'tai_ban' || data.tableId) {
       table = await Table.findById(data.tableId);
       if (!table) throw new AppError('Bàn không tồn tại', 404);
+      // [C4] Chặn đặt đơn khi bàn đang có khách hoặc đóng cửa
+      if (table.status === 'dang_phuc_vu') {
+        throw new AppError(`Bàn ${table.tableNumber} đang có khách, không thể đặt thêm`, 400);
+      }
+      if (table.status === 'dong') {
+        throw new AppError(`Bàn ${table.tableNumber} đang đóng cửa`, 400);
+      }
     }
 
     // Get prices and calculate total
@@ -103,16 +143,19 @@ const OrderService = {
     const order = await Order.findById(orderId).populate('table');
     if (!order) throw new AppError('Không tìm thấy đơn hàng', 404);
 
+    // [C1] Lưu tableId TRƯỚC khi có thể bị reset về null
+    const tableId = order.table?._id || order.table || null;
+
     order.orderStatus = orderStatus;
-    
-    // If completed or cancelled, free the table
-    if (['hoan_thanh', 'da_huy'].includes(orderStatus) && order.table) {
-      const table = await Table.findById(order.table._id);
+
+    // Nếu hoàn thành hoặc hủy → giải phóng bàn
+    if (['hoan_thanh', 'da_huy'].includes(orderStatus) && tableId) {
+      const table = await Table.findById(tableId);
       if (table) {
         table.status = 'trong';
         table.currentOrder = null;
         await table.save();
-        
+
         const io = getIO();
         if (io) {
           io.to('staff').emit('table:status-changed', { tableId: table._id, status: 'trong' });
@@ -122,10 +165,14 @@ const OrderService = {
 
     await order.save();
 
+    // [C1] Dùng tableId đã lưu, không dùng order.table (có thể đã null)
     const io = getIO();
     if (io) {
-      io.to(`table:${order.table._id}`).emit('order:status-changed', { orderId, status: orderStatus });
+      if (tableId) {
+        io.to(`table:${tableId}`).emit('order:status-changed', { orderId, status: orderStatus });
+      }
       io.to('staff').emit('order:status-changed', { orderId, status: orderStatus });
+      io.to('kitchen').emit('order:status-changed', { orderId, status: orderStatus });
     }
 
     return order;

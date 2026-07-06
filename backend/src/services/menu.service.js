@@ -1,5 +1,6 @@
 const MenuItemRepository = require('../repositories/menuItem.repository');
 const { AppError } = require('../middlewares/error.middleware');
+const Order = require('../models/Order.model');
 const fs = require('fs');
 const path = require('path');
 
@@ -48,7 +49,12 @@ const create = async (data, file) => {
   if (file) {
     menuItemData.image = `/uploads/menu/${file.filename}`;
   }
-  return await MenuItemRepository.create(menuItemData);
+  return await new Promise((resolve, reject) => {
+    MenuItemRepository.create(menuItemData, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
 };
 
 const update = async (id, data, file) => {
@@ -66,29 +72,46 @@ const update = async (id, data, file) => {
     updateData.image = `/uploads/menu/${file.filename}`;
   }
 
-  return await MenuItemRepository.updateById(id, updateData);
+  return await new Promise((resolve, reject) => {
+    MenuItemRepository.updateById(id, updateData, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
 };
 
 const remove = async (id) => {
   const item = await getById(id);
-  
-  if (item.image) {
-    const imgPath = path.join(__dirname, '../../', item.image);
-    fs.unlink(imgPath, (err) => {
-      if (err && err.code !== 'ENOENT') console.error('Lỗi xóa ảnh:', err);
-    });
+
+  // [M6] Không xoá món đang trong đơn hàng chưa hoàn thành
+  const activeOrderCount = await Order.countDocuments({
+    'items.menuItem': item._id,
+    orderStatus: { $in: ['moi', 'dang_xu_ly'] }
+  });
+  if (activeOrderCount > 0) {
+    throw new AppError(
+      `Món "${item.name}" đang có trong ${activeOrderCount} đơn hàng chưa hoàn thành. Hãy ẩn món (isAvailable=false) thay vì xóa.`,
+      400
+    );
   }
 
-  await MenuItemRepository.deleteById(id);
+  if (item.image) {
+    const imgPath = path.join(__dirname, '../../', item.image);
+    fs.unlink(imgPath, () => {}); // Bỏ qua lỗi xóa file
+  }
+
+  await new Promise((resolve, reject) => {
+    MenuItemRepository.deleteById(id, (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
   return item;
 };
 
+// [N4] Re-throw đúng lỗi, không ép tất cả thành 404
 const toggleAvailability = async (id) => {
-  try {
-    return await MenuItemRepository.toggleAvailability(id);
-  } catch (error) {
-    throw new AppError(error.message, 404);
-  }
+  return await MenuItemRepository.toggleAvailability(id);
 };
 
 module.exports = { getAll, getById, create, update, remove, toggleAvailability };

@@ -26,10 +26,15 @@ const createStaff = async (data) => {
   const salt = await bcrypt.genSalt(12);
   const hashedPassword = await bcrypt.hash(data.password, salt);
 
-  const newUser = await UserRepository.create({
-    ...data,
-    password: hashedPassword,
-    role: data.role || 'nhan_vien'
+  const newUser = await new Promise((resolve, reject) => {
+    UserRepository.create({
+      ...data,
+      password: hashedPassword,
+      role: data.role || 'nhan_vien'
+    }, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
   });
 
   const userObject = newUser.toObject();
@@ -43,16 +48,26 @@ const updateStaff = async (id, data) => {
     data.password = await bcrypt.hash(data.password, salt);
   }
 
-  const updatedUser = await UserRepository.updateById(id, data);
+  const updatedUser = await new Promise((resolve, reject) => {
+    UserRepository.updateById(id, data, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
   if (!updatedUser) throw new AppError('Không tìm thấy nhân viên', 404);
-  
+
   const userObject = updatedUser.toObject();
   delete userObject.password;
   return userObject;
 };
 
 const deleteStaff = async (id) => {
-  const deleted = await UserRepository.deleteById(id);
+  const deleted = await new Promise((resolve, reject) => {
+    UserRepository.deleteById(id, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
   if (!deleted) throw new AppError('Không tìm thấy nhân viên', 404);
   return deleted;
 };

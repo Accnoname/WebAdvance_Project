@@ -20,11 +20,16 @@ const register = async (userData) => {
   const hashedPassword = await hashPassword(userData.password);
 
   // 3. Tạo user mới
-  const newUser = await UserRepository.create({
-    ...userData,
-    password: hashedPassword,
-    // Mặc định role là khach_hang, trừ khi có logic tạo staff riêng
-    role: 'khach_hang',
+  const newUser = await new Promise((resolve, reject) => {
+    UserRepository.create({
+      ...userData,
+      password: hashedPassword,
+      // Mặc định role là khach_hang, trừ khi có logic tạo staff riêng
+      role: 'khach_hang',
+    }, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
   });
 
   // 4. Tạo token

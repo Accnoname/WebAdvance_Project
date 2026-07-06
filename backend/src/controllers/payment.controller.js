@@ -18,9 +18,10 @@ const createVNPayPayment = async (req, res, next) => {
 
 const vnpayCallback = async (req, res, next) => {
   try {
-    const payment = await PaymentService.handleVNPayCallback(req.query);
-    // Redirect về frontend sau thanh toán
-    res.redirect(`${process.env.CLIENT_URL}/payment/result?status=${payment.status}`);
+    const result = await PaymentService.handleVNPayCallback(req.query);
+    // [C6] Dùng result.isSuccess và result.responseCode — không dùng payment.status (undefined)
+    const redirectUrl = `${process.env.CLIENT_URL}/payment/result?success=${result.isSuccess}&code=${result.responseCode}`;
+    res.redirect(redirectUrl);
   } catch (error) { next(error); }
 };
 

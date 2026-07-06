@@ -1,4 +1,4 @@
-// Base Repository — chứa các hàm CRUD dùng chung
+// Base Repository — chứa các hàm CRUD dùng chung theo error-first callback
 const createBaseRepository = (Model) => ({
   findAll: (filter = {}, options = {}, callback) => {
     Model.find(filter)
@@ -8,23 +8,37 @@ const createBaseRepository = (Model) => ({
       .catch(err => callback(err));
   },
 
+  // [N1] Trả về null khi không tìm thấy, không throw Error
   findById: (id, callback) => {
     Model.findById(id)
-      .then(doc => {
-        if (!doc) return callback(new Error('Không tìm thấy tài liệu'));
-        callback(null, doc);
-      })
+      .then(doc => callback(null, doc || null))
       .catch(err => callback(err));
   },
 
-  create: async (data) => Model.create(data),
+  // [C5] Đồng bộ về callback pattern
+  create: (data, callback) => {
+    Model.create(data)
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
+  },
 
-  updateById: async (id, data) =>
-    Model.findByIdAndUpdate(id, data, { new: true, runValidators: true }),
+  updateById: (id, data, callback) => {
+    Model.findByIdAndUpdate(id, data, { new: true, runValidators: true })
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
+  },
 
-  deleteById: async (id) => Model.findByIdAndDelete(id),
+  deleteById: (id, callback) => {
+    Model.findByIdAndDelete(id)
+      .then(doc => callback(null, doc))
+      .catch(err => callback(err));
+  },
 
-  count: async (filter = {}) => Model.countDocuments(filter)
+  count: (filter = {}, callback) => {
+    Model.countDocuments(filter)
+      .then(n => callback(null, n))
+      .catch(err => callback(err));
+  }
 });
 
 module.exports = { createBaseRepository };
