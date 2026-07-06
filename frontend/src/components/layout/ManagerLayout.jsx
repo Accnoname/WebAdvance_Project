@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Utensils, Grid2X2, Users, FileBarChart, Menu as MenuIcon, Home, ChevronLeft } from 'lucide-react';
+import { LogOut, LayoutDashboard, Utensils, Grid2X2, Users, FileBarChart, Menu as MenuIcon, Home, ChevronLeft, CalendarClock } from 'lucide-react';
 import { useState } from 'react';
 
 const ManagerLayout = () => {
@@ -12,7 +12,8 @@ const ManagerLayout = () => {
   const navItems = [
     { name: 'Dashboard',    path: '/manager',         icon: LayoutDashboard },
     { name: 'Thực Đơn',    path: '/manager/menu',    icon: Utensils },
-    { name: 'Quản Lý Bàn', path: '/manager/tables',  icon: Grid2X2 },
+    { name: 'Sơ Đồ Bàn', path: '/manager/tables',  icon: Grid2X2 },
+    { name: 'Đặt Bàn',     path: '/manager/reservations', icon: CalendarClock },
     { name: 'Nhân Viên',   path: '/manager/staff',   icon: Users },
     { name: 'Báo Cáo',     path: '/manager/reports', icon: FileBarChart },
   ];

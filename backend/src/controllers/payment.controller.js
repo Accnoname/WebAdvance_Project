@@ -11,8 +11,8 @@ const createPayment = async (req, res, next) => {
 const createVNPayPayment = async (req, res, next) => {
   try {
     const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const url = await PaymentService.createVNPayPayment(req.body.orderId, ipAddr);
-    res.status(200).json(sendSuccess('Tạo URL VNPay thành công', { paymentUrl: url }));
+    const result = await PaymentService.createVNPayPayment(req.body.orderId, ipAddr);
+    res.status(200).json(sendSuccess('Tạo URL VNPay thành công', { paymentUrl: result.vnpayUrl }));
   } catch (error) { next(error); }
 };
 
