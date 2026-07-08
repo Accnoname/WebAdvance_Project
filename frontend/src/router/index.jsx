@@ -16,6 +16,7 @@ import MenuPage from '../pages/customer/MenuPage';
 import CartPage from '../pages/customer/CartPage';
 import MyOrdersPage from '../pages/customer/MyOrdersPage';
 import PaymentPage from '../pages/customer/PaymentPage';
+import PaymentResultPage from '../pages/customer/PaymentResultPage';
 import ReservationPage from '../pages/customer/ReservationPage';
 import SettingsPage from '../pages/customer/SettingsPage';
 
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: 'menu', element: <MenuPage /> },
       { path: 'cart', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><CartPage /></PrivateRoute> },
       { path: 'my-orders', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><MyOrdersPage /></PrivateRoute> },
+      { path: 'payment/result', element: <PaymentResultPage /> },
       { path: 'payment/:orderId', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><PaymentPage /></PrivateRoute> },
       { path: 'reservation', element: <ReservationPage /> },
       { path: 'settings', element: <PrivateRoute roles={['khach_hang', 'nhan_vien', 'quan_ly']}><SettingsPage /></PrivateRoute> },
