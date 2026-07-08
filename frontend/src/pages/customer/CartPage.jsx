@@ -3,15 +3,20 @@ import { useCartStore } from '../../store/cartStore';
 import { OrderService } from '../../services/order.service';
 import { ReservationService } from '../../services/reservation.service';
 import { TableService } from '../../services/table.service';
-import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag, Truck, X } from 'lucide-react';
+import formatCurrency from '../../utils/formatCurrency';
+import VoucherSelectorModal from '../../components/VoucherSelectorModal';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag, Truck, X, Tag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
 const CartPage = () => {
   const { user } = useAuth();
-  const { items, tableId, orderType, deliveryAddress, deliveryPhone, setTable, setOrderType, setDeliveryInfo, updateQuantity, updateNote, removeItem, clearCart, getTotalAmount, getTotalItems } = useCartStore();
+  const { items, tableId, orderType, deliveryAddress, deliveryPhone, voucherCode, discountAmount, setTable, setOrderType, setDeliveryInfo, updateQuantity, updateNote, removeItem, clearCart, getTotalAmount, getTotalItems, applyVoucher, removeVoucher, getFinalAmount } = useCartStore();
   const navigate = useNavigate();
+  const [inputVoucher, setInputVoucher] = useState('');
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reservations, setReservations] = useState([]);
@@ -90,9 +95,6 @@ const CartPage = () => {
       setIsSubmitting(true);
       const payload = {
         orderType,
-        tableId: orderType === 'tai_ban' ? (typeof tableId === 'object' ? tableId?._id : tableId) : undefined,
-        deliveryAddress: orderType === 'giao_hang' ? deliveryAddress : undefined,
-        deliveryPhone: orderType === 'giao_hang' ? deliveryPhone : undefined,
         items: items.map(i => ({
           menuItemId: i.menuItem._id,
           quantity: i.quantity,
@@ -101,6 +103,17 @@ const CartPage = () => {
         })),
         note: orderNote
       };
+
+      if (orderType === 'tai_ban') {
+        payload.tableId = typeof tableId === 'object' ? tableId?._id : tableId;
+      } else if (orderType === 'giao_hang') {
+        payload.deliveryAddress = deliveryAddress;
+        payload.deliveryPhone = deliveryPhone;
+      }
+
+      if (voucherCode) {
+        payload.voucherCode = voucherCode;
+      }
 
       const res = await OrderService.create(payload);
       if (res.success) {
@@ -113,6 +126,29 @@ const CartPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleApplyVoucher = async () => {
+    if (!inputVoucher.trim()) {
+      toast.error('Vui lòng nhập mã giảm giá!');
+      return;
+    }
+    setIsApplyingVoucher(true);
+    try {
+      await applyVoucher(inputVoucher.trim());
+      toast.success('Áp dụng mã giảm giá thành công!');
+      setInputVoucher('');
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Mã giảm giá không hợp lệ');
+    } finally {
+      setIsApplyingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    removeVoucher();
+    setInputVoucher('');
+    toast.success('Đã gỡ mã giảm giá');
   };
 
   if (items.length === 0) {
@@ -311,14 +347,69 @@ const CartPage = () => {
             rows="3"
           />
         </div>
+
+        {/* Voucher Section */}
+        <div className="mt-6 pt-6 border-t border-stone-100">
+          <label className="block text-sm font-semibold text-stone-700 mb-2">Mã Khuyến Mãi / Voucher</label>
+          {voucherCode ? (
+            <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🏷️</span>
+                <div>
+                  <div className="font-bold text-emerald-800 uppercase">{voucherCode}</div>
+                  <div className="text-sm text-emerald-600 font-medium">Đã giảm {discountAmount.toLocaleString('vi-VN')}đ</div>
+                </div>
+              </div>
+              <button 
+                onClick={handleRemoveVoucher}
+                className="p-2 text-stone-400 hover:text-rose-500 hover:bg-white rounded-lg transition-colors"
+                title="Gỡ mã giảm giá"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2 sm:gap-3">
+              <input 
+                type="text"
+                placeholder="Nhập mã..."
+                value={inputVoucher}
+                onChange={(e) => setInputVoucher(e.target.value)}
+                className="w-[120px] sm:flex-1 px-3 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 uppercase focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+                onKeyDown={(e) => e.key === 'Enter' && handleApplyVoucher()}
+              />
+              <button 
+                id="btn-apply-voucher"
+                onClick={handleApplyVoucher}
+                disabled={isApplyingVoucher || !inputVoucher.trim()}
+                className="px-4 sm:px-6 py-3 bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-bold rounded-xl transition-colors whitespace-nowrap flex items-center justify-center min-w-[80px]"
+              >
+                {isApplyingVoucher ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Áp Dụng'}
+              </button>
+              <button 
+                onClick={() => setIsVoucherModalOpen(true)}
+                className="px-4 py-3 bg-primary-50 hover:bg-primary-100 text-primary-700 font-bold rounded-xl transition-colors whitespace-nowrap flex items-center gap-2 border border-primary-200"
+              >
+                <Tag className="w-5 h-5" />
+                <span className="hidden sm:inline">Chọn mã</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="bg-stone-900 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-stone-900/10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
+          <div className="w-full md:w-auto">
+            {voucherCode && (
+              <div className="flex justify-between md:justify-start md:gap-8 items-center text-stone-400 text-sm font-medium mb-2 pb-2 border-b border-stone-700">
+                <span>Tạm tính: {getTotalAmount().toLocaleString('vi-VN')}đ</span>
+                <span className="text-emerald-400">- {discountAmount.toLocaleString('vi-VN')}đ</span>
+              </div>
+            )}
             <p className="text-stone-400 text-sm font-medium mb-1">Tổng cộng ({getTotalItems()} món)</p>
             <div className="text-3xl font-display font-bold">
-              {getTotalAmount().toLocaleString('vi-VN')}
+              {getFinalAmount().toLocaleString('vi-VN')}
               <span className="text-xl ml-1 text-primary-400">VNĐ</span>
             </div>
           </div>
@@ -394,6 +485,21 @@ const CartPage = () => {
         </div>
       </div>
     )}
+
+    {/* Voucher Selector Modal */}
+    <VoucherSelectorModal
+      isOpen={isVoucherModalOpen}
+      onClose={() => setIsVoucherModalOpen(false)}
+      onSelectVoucher={(code) => {
+        setInputVoucher(code);
+        // Gọi applyVoucher ngay lập tức
+        setTimeout(() => {
+          const btn = document.getElementById('btn-apply-voucher');
+          if (btn) btn.click();
+        }, 100);
+      }}
+      cartTotal={getTotalAmount()}
+    />
   </>
   );
 };

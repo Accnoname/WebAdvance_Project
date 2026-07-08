@@ -2,8 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { MenuService } from '../../services/menu.service';
 import { TableService } from '../../services/table.service';
 import { OrderService } from '../../services/order.service';
+import { VoucherService } from '../../services/voucher.service';
 import useSocket from '../../hooks/useSocket';
-import { Loader2, Plus, Minus, Search, ShoppingCart, Trash2, CheckCircle2, User, Coffee, UtensilsCrossed, Send } from 'lucide-react';
+import VoucherSelectorModal from '../../components/VoucherSelectorModal';
+import { Loader2, Plus, Minus, Search, ShoppingCart, Trash2, CheckCircle2, User, Coffee, UtensilsCrossed, Send, X, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import formatCurrency from '../../utils/formatCurrency';
 
@@ -25,6 +27,13 @@ const POSPage = () => {
   const [cart, setCart] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Voucher states
+  const [voucherCode, setVoucherCode] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [inputVoucher, setInputVoucher] = useState('');
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
 
   const socket = useSocket('staff');
 
@@ -108,7 +117,16 @@ const POSPage = () => {
     });
   }, [menuItems, activeCategory, searchQuery]);
 
+  const clearVoucherIfAny = () => {
+    if (voucherCode) {
+      setVoucherCode(null);
+      setDiscountAmount(0);
+      toast('Giỏ hàng thay đổi, vui lòng áp dụng lại mã giảm giá', { icon: '⚠️' });
+    }
+  };
+
   const addToCart = (item) => {
+    clearVoucherIfAny();
     setCart(prev => {
       const existing = prev.find(i => i.menuItemId === item._id);
       if (existing) {
@@ -119,6 +137,7 @@ const POSPage = () => {
   };
 
   const updateQuantity = (id, delta) => {
+    clearVoucherIfAny();
     setCart(prev => prev.map(item => {
       if (item.menuItemId === id) {
         const newQ = item.quantity + delta;
@@ -129,6 +148,7 @@ const POSPage = () => {
   };
 
   const removeItem = (id) => {
+    clearVoucherIfAny();
     setCart(prev => prev.filter(item => item.menuItemId !== id));
   };
 
@@ -137,6 +157,41 @@ const POSPage = () => {
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const finalAmount = Math.max(0, cartTotal - discountAmount);
+
+  const handleApplyVoucher = async () => {
+    if (!inputVoucher.trim()) {
+      toast.error('Vui lòng nhập mã giảm giá');
+      return;
+    }
+    if (cartTotal === 0) {
+      toast.error('Giỏ hàng trống');
+      return;
+    }
+    setIsApplyingVoucher(true);
+    try {
+      const res = await VoucherService.validate(inputVoucher.trim(), cartTotal);
+      if (res.success) {
+        setVoucherCode(res.data.voucherCode);
+        setDiscountAmount(res.data.discountAmount);
+        toast.success('Áp dụng mã giảm giá thành công');
+        setInputVoucher('');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Mã không hợp lệ');
+      setVoucherCode(null);
+      setDiscountAmount(0);
+    } finally {
+      setIsApplyingVoucher(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherCode(null);
+    setDiscountAmount(0);
+    setInputVoucher('');
+    toast.success('Đã gỡ mã giảm giá');
+  };
 
   const handleSubmitOrder = async () => {
     if (!selectedTableId) return toast.error('Vui lòng chọn bàn trước khi order');
@@ -155,18 +210,25 @@ const POSPage = () => {
         await OrderService.addItems(activeOrder._id, itemsPayload);
         toast.success('Đã thêm món vào đơn hiện tại!');
       } else {
-        // Tạo đơn mới
-        await OrderService.create({
+        const payload = {
           tableId: selectedTableId,
           orderType: 'tai_ban',
           items: itemsPayload
-        });
+        };
+        if (voucherCode) {
+          payload.voucherCode = voucherCode;
+        }
+
+        // Tạo đơn mới
+        await OrderService.create(payload);
         toast.success('Đã gửi order xuống bếp!');
       }
       
       setCart([]);
       setSelectedTableId('');
       setActiveOrder(null);
+      setVoucherCode(null);
+      setDiscountAmount(0);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi gửi order');
     } finally {
@@ -323,11 +385,70 @@ const POSPage = () => {
           )}
         </div>
 
+        {/* Voucher Section (POS) */}
+        {cart.length > 0 && (
+          <div className="p-3 bg-stone-50 border-t border-stone-200">
+            {voucherCode ? (
+              <div className="flex items-center justify-between bg-emerald-100/50 border border-emerald-200 rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-emerald-600" />
+                  <div>
+                    <div className="font-bold text-emerald-800 text-sm uppercase">{voucherCode}</div>
+                    <div className="text-xs text-emerald-600 font-medium">Giảm {formatCurrency(discountAmount)}</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleRemoveVoucher}
+                  className="p-1 text-stone-400 hover:text-rose-500 hover:bg-white rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input 
+                  type="text"
+                  placeholder="Nhập mã voucher..."
+                  value={inputVoucher}
+                  onChange={(e) => setInputVoucher(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-white border border-stone-200 rounded-xl text-sm font-medium uppercase focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  onKeyDown={(e) => e.key === 'Enter' && handleApplyVoucher()}
+                />
+                <button 
+                  id="btn-apply-voucher-pos"
+                  onClick={handleApplyVoucher}
+                  disabled={isApplyingVoucher || !inputVoucher.trim()}
+                  className="px-4 py-2 bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-bold rounded-xl text-sm transition-colors"
+                >
+                  {isApplyingVoucher ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Áp dụng'}
+                </button>
+                <button 
+                  onClick={() => setIsVoucherModalOpen(true)}
+                  className="px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 font-bold rounded-xl transition-colors border border-primary-200"
+                  title="Chọn mã có sẵn"
+                >
+                  <Tag className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Footer Checkout */}
         <div className="p-5 bg-stone-900 rounded-t-3xl text-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.2)]">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-medium text-stone-400 text-sm">Tổng cộng ({cart.reduce((s, i) => s + i.quantity, 0)} món)</span>
-            <span className="text-2xl font-black text-white">{formatCurrency(cartTotal)}</span>
+          <div className="flex justify-between items-center mb-1">
+            <span className="font-medium text-stone-400 text-sm">Tạm tính ({cart.reduce((s, i) => s + i.quantity, 0)} món)</span>
+            <span className="text-lg font-bold text-stone-300">{formatCurrency(cartTotal)}</span>
+          </div>
+          {voucherCode && (
+            <div className="flex justify-between items-center mb-2 pb-2 border-b border-stone-700/50">
+              <span className="font-medium text-emerald-400 text-sm">Khuyến mãi</span>
+              <span className="text-lg font-bold text-emerald-400">- {formatCurrency(discountAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between items-center mb-4 mt-2">
+            <span className="font-bold text-stone-200 text-base">Tổng thanh toán</span>
+            <span className="text-3xl font-black text-white">{formatCurrency(finalAmount)}</span>
           </div>
           <button
             onClick={handleSubmitOrder}
@@ -340,6 +461,19 @@ const POSPage = () => {
         </div>
       </div>
       
+      {/* Voucher Selector Modal for POS */}
+      <VoucherSelectorModal
+        isOpen={isVoucherModalOpen}
+        onClose={() => setIsVoucherModalOpen(false)}
+        onSelectVoucher={(code) => {
+          setInputVoucher(code);
+          setTimeout(() => {
+            const btn = document.getElementById('btn-apply-voucher-pos');
+            if (btn) btn.click();
+          }, 100);
+        }}
+        cartTotal={cartTotal}
+      />
     </div>
   );
 };

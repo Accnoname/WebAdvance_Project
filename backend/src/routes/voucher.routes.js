@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const VoucherController = require('../controllers/voucher.controller');
-const { authenticate, authorizeRole } = require('../middlewares/auth.middleware');
+const { authenticate, optionalAuthenticate, authorizeRole } = require('../middlewares/auth.middleware');
 
-// All voucher routes require authentication
+// Client-accessible routes (cho phép guest)
+router.get('/client/available', optionalAuthenticate, VoucherController.getAvailableVouchers);
+
+// Validate voucher for an order (cho phép guest)
+router.post('/validate', optionalAuthenticate, VoucherController.validate);
+
+// All other voucher routes require authentication
 router.use(authenticate);
-
-// Client-accessible routes (must be registered before admin authorizeRole)
-router.get('/client/available', VoucherController.getAvailableVouchers);
-
-// Validate voucher for an order
-router.post('/validate', VoucherController.validate);
 
 // Look up voucher details by code
 router.get('/code/:code', VoucherController.getByCode);

@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/authStore';
 // Auth Pages
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 
 // Layouts
 import CustomerLayout from '../components/layout/CustomerLayout';
@@ -53,6 +55,8 @@ const router = createBrowserRouter([
   // Auth Routes (No Layout)
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
 
   // Customer Routes (Dark Premium)
   {
