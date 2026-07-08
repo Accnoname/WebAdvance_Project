@@ -30,6 +30,7 @@ const orderSchema = new mongoose.Schema({
     enum: ['tien_mat', 'chuyen_khoan', 'vnpay', 'khac'],
     default: 'tien_mat'
   },
+  isPaid: { type: Boolean, default: false },
   totalAmount: { type: Number, required: true },
   voucherCode: { type: String, default: null },
   discountAmount: { type: Number, default: 0 },

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2, Home, ShoppingBag, ArrowRight, Receipt } from 'lucide-react';
+import { useCartStore } from '../../store/cartStore';
 
 // ─── Mã phản hồi VNPay → mô tả tiếng Việt ───────────────────────────────────
 const VNPAY_RESPONSE_MESSAGES = {
@@ -31,6 +32,13 @@ const PaymentResultPage = () => {
 
   const message = VNPAY_RESPONSE_MESSAGES[responseCode] || 'Giao dịch không xác định';
   const shortOrderId = orderId ? orderId.slice(-6).toUpperCase() : '------';
+
+  // Clear cart if payment is successful
+  useEffect(() => {
+    if (isSuccess) {
+      useCartStore.getState().clearCart();
+    }
+  }, [isSuccess]);
 
   // Tự động chuyển về /my-orders sau 8 giây nếu thành công
   useEffect(() => {
