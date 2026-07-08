@@ -101,8 +101,7 @@ const CartPage = () => {
         items: items.map(i => ({
           menuItemId: i.menuItem._id,
           quantity: i.quantity,
-          note: i.note,
-          variant: i.variant
+          note: i.note
         })),
         note: orderNote
       };
@@ -240,7 +239,7 @@ const CartPage = () => {
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-stone-100 mb-8">
         <div className="space-y-6">
           {items.map((item, index) => (
-            <div key={`${item.menuItem._id}-${item.variant}-${index}`} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 border-b border-stone-100 last:border-0 last:pb-0">
+            <div key={`${item.menuItem._id}-${index}`} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-4 border-b border-stone-100 last:border-0 last:pb-0">
               <img
                 src={item.menuItem.image?.startsWith('http') ? item.menuItem.image : `http://localhost:3000${item.menuItem.image}`}
                 alt={item.menuItem.name}
@@ -262,7 +261,7 @@ const CartPage = () => {
                 <input
                   type="text"
                   value={item.note}
-                  onChange={(e) => updateNote(item.menuItem._id, item.note, e.target.value, item.variant)}
+                  onChange={(e) => updateNote(item.menuItem._id, item.note, e.target.value)}
                   placeholder="Ghi chú (Không hành, ít cay...)"
                   className="w-full text-sm px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:border-primary-400"
                 />
@@ -294,7 +293,7 @@ const CartPage = () => {
                 </div>
 
                 <button
-                  onClick={() => removeItem(item.menuItem._id, item.note, item.variant)}
+                  onClick={() => removeItem(item.menuItem._id, item.note)}
                   className="p-2 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
                 >
                   <Trash2 className="w-5 h-5" />

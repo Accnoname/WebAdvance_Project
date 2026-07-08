@@ -61,10 +61,10 @@ export const useCartStore = create((set, get) => ({
     get().syncCart();
   },
 
-  addItem: (menuItem, quantity = 1, note = '', variant = null) => {
+  addItem: (menuItem, quantity = 1, note = '') => {
     const state = get();
     const existingIndex = state.items.findIndex(
-      (i) => i.menuItem._id === menuItem._id && i.note === note && i.variant === variant
+      (i) => i.menuItem._id === menuItem._id && i.note === note
     );
 
     let newItems = [...state.items];
@@ -74,32 +74,32 @@ export const useCartStore = create((set, get) => ({
         quantity: newItems[existingIndex].quantity + quantity
       };
     } else {
-      newItems.push({ menuItem, quantity, price: menuItem.price, note, variant });
+      newItems.push({ menuItem, quantity, price: menuItem.price, note });
     }
 
     set({ items: newItems });
     get().syncCart();
   },
 
-  removeItem: (menuItemId, note = '', variant = null) => {
+  removeItem: (menuItemId, note = '') => {
     const state = get();
     const newItems = state.items.filter(
-      (i) => !(i.menuItem._id === menuItemId && i.note === note && i.variant === variant)
+      (i) => !(i.menuItem._id === menuItemId && i.note === note)
     );
     set({ items: newItems });
     get().syncCart();
   },
 
-  updateQuantity: (menuItemId, note = '', variant = null, quantity) => {
+  updateQuantity: (menuItemId, note = '', quantity) => {
     const state = get();
     let newItems = [];
     if (quantity <= 0) {
       newItems = state.items.filter(
-        (i) => !(i.menuItem._id === menuItemId && i.note === note && i.variant === variant)
+        (i) => !(i.menuItem._id === menuItemId && i.note === note)
       );
     } else {
       newItems = state.items.map((i) =>
-        i.menuItem._id === menuItemId && i.note === note && i.variant === variant
+        i.menuItem._id === menuItemId && i.note === note
           ? { ...i, quantity }
           : i
       );
@@ -108,7 +108,7 @@ export const useCartStore = create((set, get) => ({
     get().syncCart();
   },
 
-  updateNote: (menuItemId, oldNote = '', newNote = '', variant = null) => {
+  updateNote: (menuItemId, oldNote = '', newNote = '') => {
     const state = get();
     const itemExistsWithNewNote = state.items.some(
       (i) => i.menuItem._id === menuItemId && i.note === newNote && i.variant === variant

@@ -46,7 +46,6 @@ const StaffLayout = () => {
 
   const navItems = [
     { name: 'Dashboard',     path: '/staff/dashboard', icon: LayoutGrid },
-    { name: 'Ghi Order (POS)', path: '/staff/pos',     icon: LayoutGrid },
     { name: 'Sơ Đồ Bàn',   path: '/staff/tables',    icon: LayoutDashboard },
     { name: 'Điều Phối Đơn', path: '/staff/orders',  icon: UtensilsCrossed },
     { name: 'Màn Hình Bếp', path: '/staff/kitchen',   icon: MonitorPlay },

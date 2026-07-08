@@ -6,10 +6,7 @@ const MenuCard = ({ item, onAddToCart }) => {
   const [isAdded, setIsAdded] = useState(false);
   const [note, setNote] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState(
-    item.variants && item.variants.length > 0 ? item.variants[0] : null
-  );
-
+  
   // Handle local image vs external image
   const getImageUrl = (url) => {
     if (!url) return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600&auto=format&fit=crop';
@@ -19,15 +16,12 @@ const MenuCard = ({ item, onAddToCart }) => {
 
   const handleAddToCart = () => {
     if (!item.isAvailable) return;
-    onAddToCart(item, quantity, note, selectedVariant);
+    onAddToCart(item, quantity, note);
     toast.success(`Đã thêm ${quantity} x ${item.name} vào giỏ hàng`);
     setIsAdded(true);
     setNote('');
     setQuantity(1);
-    if (item.variants && item.variants.length > 0) {
-      setSelectedVariant(item.variants[0]);
-    }
-    setTimeout(() => setIsAdded(false), 2000);
+        setTimeout(() => setIsAdded(false), 2000);
   };
 
   const increaseQuantity = () => setQuantity(q => q + 1);
@@ -82,29 +76,6 @@ const MenuCard = ({ item, onAddToCart }) => {
         </div>
         
         <div className="flex-grow space-y-4">
-          {/* Variants Selector */}
-          {item.variants && item.variants.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Chọn Vị</label>
-              <div className="flex flex-wrap gap-1.5">
-                {item.variants.map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setSelectedVariant(v)}
-                    disabled={!item.isAvailable}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border ${
-                      selectedVariant === v
-                        ? 'bg-[#d4a85a] border-[#d4a85a] text-[#1a1208] shadow-sm shadow-[#d4a85a]/10'
-                        : 'bg-[#1a1208] border-stone-850 text-[#d4c3a3] hover:bg-[#2e2112] hover:text-[#f5e6c8]'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Note Input */}
           <div className="relative">
             <input

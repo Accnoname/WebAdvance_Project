@@ -25,7 +25,6 @@ import StaffDashboard from '../pages/staff/DashboardPage';
 import KitchenPage from '../pages/staff/KitchenPage';
 import TablesPage from '../pages/staff/TablesPage';
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage';
-import POSPage from '../pages/staff/POSPage';
 
 // Manager Pages
 import ManagerDashboard from '../pages/manager/DashboardPage';
@@ -81,7 +80,6 @@ const router = createBrowserRouter([
       { path: 'kitchen', element: <KitchenPage /> },
       { path: 'tables', element: <TablesPage /> },
       { path: 'orders', element: <StaffOrdersPage /> },
-      { path: 'pos', element: <POSPage /> },
       { path: 'reservations', element: <ReservationsManagePage /> },
     ]
   },
