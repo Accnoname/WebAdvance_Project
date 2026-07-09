@@ -209,10 +209,14 @@ const runTests = async () => {
       voucherCode: 'TESTFIXED', // 100k - 30k = 70k finalAmount
       note: 'TEST_ORDER_NOTE'
     };
+    const voucherBeforeOrder = await Voucher.findOne({ code: 'TESTFIXED' });
+    console.log('Voucher usedCount before order creation:', voucherBeforeOrder.usedCount);
+
     const paymentOrder = await OrderService.create(paymentOrderData, testUser);
 
-    const voucherBefore = await Voucher.findOne({ code: 'TESTFIXED' });
-    console.log('Voucher usedCount before payment:', voucherBefore.usedCount);
+    const voucherAfterOrder = await Voucher.findOne({ code: 'TESTFIXED' });
+    console.log('Voucher usedCount after order creation:', voucherAfterOrder.usedCount);
+    console.log('Voucher usedCount incremented during order creation check:', voucherAfterOrder.usedCount === voucherBeforeOrder.usedCount + 1 ? 'PASS' : 'FAIL');
 
     const payment = await PaymentService.createOfflinePayment({
       orderId: paymentOrder._id,
@@ -222,9 +226,12 @@ const runTests = async () => {
 
     console.log('Payment amount check (should be finalAmount):', payment.amount === 70000 ? 'PASS' : 'FAIL');
 
-    const voucherAfter = await Voucher.findOne({ code: 'TESTFIXED' });
-    console.log('Voucher usedCount after payment:', voucherAfter.usedCount);
-    console.log('Voucher usedCount increment check:', voucherAfter.usedCount === voucherBefore.usedCount + 1 ? 'PASS' : 'FAIL');
+    // Confirm the offline payment to simulate full lifecycle
+    await PaymentService.confirmOfflinePayment(paymentOrder._id, testUser._id, 'tien_mat');
+
+    const voucherAfterPayment = await Voucher.findOne({ code: 'TESTFIXED' });
+    console.log('Voucher usedCount after payment confirmation:', voucherAfterPayment.usedCount);
+    console.log('No double increment check:', voucherAfterPayment.usedCount === voucherAfterOrder.usedCount ? 'PASS' : 'FAIL');
 
     // Clean up
     await Voucher.deleteMany({ code: { $in: ['TESTPERCENT', 'TESTFIXED', 'TESTEXPIRED', 'TESTUNAVAILABLE', 'TESTMAX'] } });

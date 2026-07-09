@@ -13,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  orderType:       { type: String, enum: ['tai_ban', 'giao_hang'], default: 'tai_ban' },
+  orderType:       { type: String, enum: ['tai_ban', 'giao_hang', 'mang_ve'], default: 'tai_ban' },
   table:           { type: mongoose.Schema.Types.ObjectId, ref: 'Table' }, // Optional
   deliveryAddress: { type: String, default: null }, // Cho giao hàng
   deliveryPhone:   { type: String, default: null }, // Cho giao hàng

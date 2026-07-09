@@ -17,10 +17,10 @@ const ForgotPasswordPage = () => {
       const result = res.data?.data;
       setSentData(result);
       toast.success('Đã gửi mã OTP! Kiểm tra hộp thư của bạn.');
-      // Chuyển sang trang đặt lại mật khẩu, truyền resetToken qua state
+      // Chuyển sang trang đặt lại mật khẩu, truyền email qua state
       navigate('/reset-password', {
         state: {
-          resetToken: result?.resetToken,
+          email: data.email,
           // ⚠️ chỉ dùng khi test — otp hiển thị trực tiếp
           otp: result?.otp,
         }

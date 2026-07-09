@@ -84,7 +84,7 @@ const VoucherSelectorModal = ({ isOpen, onClose, onSelectVoucher, cartTotal }) =
                       ${isEligible ? 'bg-primary-50 text-primary-600' : 'bg-stone-200 text-stone-400'}
                     `}>
                       <span className="text-2xl font-black">
-                        {voucher.discountType === 'percent' ? '%' : '₫'}
+                        {voucher.discountType === 'percentage' ? '%' : '₫'}
                       </span>
                     </div>
 
@@ -101,7 +101,7 @@ const VoucherSelectorModal = ({ isOpen, onClose, onSelectVoucher, cartTotal }) =
                       <div className={`font-bold text-sm mb-1
                         ${isEligible ? 'text-primary-600' : 'text-stone-500'}
                       `}>
-                        Giảm {voucher.discountType === 'percent' 
+                        Giảm {voucher.discountType === 'percentage' 
                           ? `${voucher.discountValue}%` 
                           : formatCurrency(voucher.discountValue)}
                       </div>

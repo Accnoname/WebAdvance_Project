@@ -20,7 +20,7 @@ const reservationSchema = new mongoose.Schema({
   items: [reservationItemSchema],
   status: {
     type: String,
-    enum: ['cho_xac_nhan', 'da_xac_nhan', 'hoan_thanh', 'da_huy'],
+    enum: ['cho_xac_nhan', 'da_xac_nhan', 'da_den', 'hoan_thanh', 'da_huy'],
     default: 'cho_xac_nhan'
   },
   table: { type: mongoose.Schema.Types.ObjectId, ref: 'Table', default: null },

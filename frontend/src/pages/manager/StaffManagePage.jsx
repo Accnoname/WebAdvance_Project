@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserService } from '../../services/user.service';
 import { useAuthStore } from '../../store/authStore';
-import { Loader2, Plus, Trash2, Shield, User as UserIcon, X, Search } from 'lucide-react';
+import { Loader2, Plus, Trash2, Shield, User as UserIcon, X, Search, Key } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ROLE_CONFIG = {
@@ -30,6 +30,30 @@ const StaffManagePage = () => {
   });
 
   const [deletingId, setDeletingId] = useState(null);
+
+  // Password reset states
+  const [resetPasswordUser, setResetPasswordUser] = useState(null);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!newPasswordValue || newPasswordValue.length < 6) {
+      return toast.error('Mật khẩu mới phải từ 6 ký tự trở lên');
+    }
+    
+    setIsResettingPassword(true);
+    try {
+      await UserService.updateStaff(resetPasswordUser._id, { password: newPasswordValue });
+      toast.success(`Đã đổi mật khẩu tài khoản ${resetPasswordUser.name} thành "${newPasswordValue}"`);
+      setResetPasswordUser(null);
+      setNewPasswordValue('');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Không thể đổi mật khẩu lúc này');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
 
   const fetchStaff = async () => {
     try {
@@ -177,7 +201,17 @@ const StaffManagePage = () => {
                     <td className="px-6 py-4 text-sm font-medium text-slate-600">
                       {new Date(staff.createdAt).toLocaleDateString('vi-VN')}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => {
+                          setResetPasswordUser(staff);
+                          setNewPasswordValue('123456');
+                        }}
+                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors inline-flex"
+                        title="Đổi mật khẩu"
+                      >
+                        <Key className="w-5 h-5" />
+                      </button>
                       {!isProtectedUser(staff) ? (
                         <button
                           onClick={() => handleDelete(staff._id)}
@@ -284,6 +318,57 @@ const StaffManagePage = () => {
                   className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tạo Tài Khoản'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={() => setResetPasswordUser(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-200 animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-slate-900 font-admin">Đặt Lại Mật Khẩu</h3>
+              <button onClick={() => setResetPasswordUser(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-slate-500 mb-4 text-sm font-medium">
+              Đổi mật khẩu cho tài khoản: <strong className="text-slate-800">{resetPasswordUser.name}</strong> ({resetPasswordUser.email})
+            </p>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-1">Mật khẩu mới</label>
+                <input
+                  type="text"
+                  required
+                  minLength={6}
+                  value={newPasswordValue}
+                  onChange={e => setNewPasswordValue(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-slate-800 font-mono text-lg"
+                  placeholder="Nhập mật khẩu mới"
+                />
+                <p className="text-xs text-slate-400 mt-1">Mật khẩu mới phải có ít nhất 6 ký tự.</p>
+              </div>
+
+              <div className="flex gap-3 mt-6 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setResetPasswordUser(null)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isResettingPassword}
+                  className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isResettingPassword ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Xác Nhận'}
                 </button>
               </div>
             </form>

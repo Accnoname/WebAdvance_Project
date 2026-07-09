@@ -44,8 +44,8 @@ const forgotPassword = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   try {
-    const { resetToken, newPassword } = req.body;
-    const result = await AuthService.resetPassword(resetToken, newPassword);
+    const { email, otp, newPassword } = req.body;
+    const result = await AuthService.resetPassword(email, otp, newPassword);
     res.status(200).json(sendSuccess('Đặt lại mật khẩu thành công', result));
   } catch (error) { next(error); }
 };

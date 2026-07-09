@@ -126,7 +126,7 @@ const remove = async (id) => {
   return deleted;
 };
 
-const validateVoucher = async (code, orderAmount) => {
+const validateVoucher = async (code, orderAmount, isExistingOrder = false) => {
   const voucher = await new Promise((resolve, reject) => {
     VoucherRepository.findByCode(code, (err, doc) => {
       if (err) return reject(err);
@@ -142,13 +142,18 @@ const validateVoucher = async (code, orderAmount) => {
     throw new AppError('Mã giảm giá hiện không khả dụng', 400);
   }
 
-  const now = new Date();
-  if (now > new Date(voucher.expiryDate)) {
-    throw new AppError('Mã giảm giá đã hết hạn sử dụng', 400);
-  }
+  if (!isExistingOrder) {
+    if (!voucher.expiryDate || isNaN(new Date(voucher.expiryDate).getTime())) {
+      throw new AppError('Mã giảm giá đã hết hạn sử dụng', 400);
+    }
+    const now = new Date();
+    if (now > new Date(voucher.expiryDate)) {
+      throw new AppError('Mã giảm giá đã hết hạn sử dụng', 400);
+    }
 
-  if (voucher.maxUses !== null && voucher.usedCount >= voucher.maxUses) {
-    throw new AppError('Mã giảm giá đã hết lượt sử dụng', 400);
+    if (voucher.maxUses !== null && voucher.usedCount >= voucher.maxUses) {
+      throw new AppError('Mã giảm giá đã hết lượt sử dụng', 400);
+    }
   }
 
   if (orderAmount < voucher.minOrderAmount) {
@@ -156,10 +161,13 @@ const validateVoucher = async (code, orderAmount) => {
   }
 
   let discountAmount = 0;
-  if (voucher.discountType === 'percentage') {
-    discountAmount = Math.floor(orderAmount * (voucher.discountValue / 100));
-  } else if (voucher.discountType === 'fixed') {
-    discountAmount = voucher.discountValue;
+  const discountValue = (voucher.discountValue !== undefined && voucher.discountValue !== null) ? voucher.discountValue : 0;
+  const discountType = voucher.discountType || 'fixed';
+
+  if (discountType === 'percentage') {
+    discountAmount = Math.floor(orderAmount * (discountValue / 100));
+  } else if (discountType === 'fixed') {
+    discountAmount = discountValue;
   }
 
   // Capped at orderAmount, cannot be negative

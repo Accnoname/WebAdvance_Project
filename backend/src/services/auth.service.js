@@ -5,6 +5,7 @@ const User = require('../models/User.model');
 const { hashPassword, comparePassword } = require('../utils/hash.util');
 const { generateToken } = require('../utils/jwt.util');
 const { AppError } = require('../middlewares/error.middleware');
+const { sendEmail } = require('../utils/email.util');
 
 const register = async (userData) => {
   // 1. Kiểm tra email đã tồn tại
@@ -129,44 +130,78 @@ const forgotPassword = async (email) => {
 
   // Tạo OTP 6 số
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  // Tạo token ngẫu nhiên an toàn để dùng làm reset token
-  const resetToken = crypto.randomBytes(32).toString('hex');
 
-  // Lưu token (hash) và OTP vào DB, hết hạn sau 15 phút
-  user.resetPasswordToken = resetToken;
+  // Lưu OTP trực tiếp vào resetPasswordToken, hết hạn sau 15 phút
+  user.resetPasswordToken = otp;
   user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
   await user.save();
 
-  // TODO: Gửi email thật — hiện tại log ra console để test
-  console.log(`\n🔑 [FORGOT PASSWORD] Email: ${email} | OTP: ${otp} | Token: ${resetToken}\n`);
+  const isTestMode = !process.env.EMAIL_PASS || process.env.EMAIL_PASS.includes('xxxx');
 
-  // Trả về OTP và token cho client (chỉ dùng khi chưa có email server)
-  // Khi có email server: chỉ trả về { message } và gửi email
-  return {
-    message: 'Mã OTP đã được gửi đến email của bạn',
-    otp,          // ⚠️ Chỉ trả về để test — xóa khi production
-    resetToken,   // Dùng để xác thực bước đặt lại mật khẩu
-  };
+  if (isTestMode) {
+    // Chế độ TEST: Chỉ in ra console và trả về OTP cho frontend
+    console.log(`\n🔑 [FORGOT PASSWORD - TEST MODE] Email: ${email} | OTP: ${otp}\n`);
+    return {
+      message: 'Mã OTP đã được gửi đến email của bạn (Chế độ TEST)',
+      otp, 
+    };
+  }
+
+  // Chế độ GỬI MAIL THẬT
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+      <h2 style="color: #ea580c; text-align: center;">Yêu Cầu Đặt Lại Mật Khẩu</h2>
+      <p>Chào bạn <strong>${user.name}</strong>,</p>
+      <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Nhà Hàng Accnoname</strong>.</p>
+      <div style="background-color: #f7fee7; border: 1px dashed #84cc16; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 14px; color: #4d7c0f; display: block; margin-bottom: 5px;">Mã xác thực OTP của bạn là:</span>
+        <strong style="font-size: 32px; font-family: monospace; letter-spacing: 5px; color: #15803d;">${otp}</strong>
+      </div>
+      <p style="color: #6b7280; font-size: 13px;">Mã OTP này có giá trị trong vòng <strong>15 phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 12px; color: #9ca3af; text-align: center;">Đây là email tự động từ hệ thống quản lý nhà hàng.</p>
+    </div>
+  `;
+
+  try {
+    await sendEmail({
+      to: email,
+      subject: '[Nhà Hàng Accnoname] Mã OTP Xác Thực Đặt Lại Mật Khẩu',
+      html: htmlContent
+    });
+    console.log(`\n📧 [FORGOT PASSWORD] Email OTP đã gửi thành công tới: ${email}\n`);
+    return {
+      message: 'Mã OTP đã được gửi đến email của bạn',
+    };
+  } catch (error) {
+    console.error('❌ Lỗi gửi email thật:', error.message);
+    // Nếu lỗi gửi mail thật, fallback tạm thời in ra console để tránh nghẽn luồng test
+    console.log(`\n🔑 [FORGOT PASSWORD - FALLBACK] Email: ${email} | OTP: ${otp}\n`);
+    return {
+      message: 'Mã OTP đã được gửi đến email của bạn (Chế độ TEST)',
+      otp,
+    };
+  }
 };
 
-// Đặt lại mật khẩu bằng OTP token
-const resetPassword = async (resetToken, newPassword) => {
-  if (!resetToken || !newPassword) {
-    throw new AppError('Token và mật khẩu mới không được để trống', 400);
+// Đặt lại mật khẩu bằng OTP
+const resetPassword = async (email, otp, newPassword) => {
+  if (!email || !otp || !newPassword) {
+    throw new AppError('Email, mã OTP và mật khẩu mới không được để trống', 400);
   }
   if (newPassword.length < 6) {
     throw new AppError('Mật khẩu mới phải từ 6 ký tự trở lên', 400);
   }
 
   const user = await new Promise((resolve, reject) => {
-    UserRepository.findByResetToken(resetToken, (err, doc) => {
+    UserRepository.findByEmail(email, (err, doc) => {
       if (err) return reject(err);
       resolve(doc);
     });
   });
 
-  if (!user) {
-    throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400);
+  if (!user || user.resetPasswordToken !== otp || !user.resetPasswordExpires || user.resetPasswordExpires <= Date.now()) {
+    throw new AppError('Mã OTP không hợp lệ hoặc đã hết hạn', 400);
   }
 
   // Hash và lưu mật khẩu mới, xóa token

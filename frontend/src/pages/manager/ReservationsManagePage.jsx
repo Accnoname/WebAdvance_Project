@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 const STATUS_CONFIG = {
   cho_xac_nhan: { label: 'Chờ xác nhận', bg: 'bg-amber-100 text-amber-700 border-amber-200', icon: CalendarClock },
   da_xac_nhan: { label: 'Đã xác nhận', bg: 'bg-blue-100 text-blue-700 border-blue-200', icon: CheckCircle },
+  da_den: { label: 'Đã check-in', bg: 'bg-indigo-100 text-indigo-700 border-indigo-200', icon: ArrowRight },
   hoan_thanh: { label: 'Đã hoàn thành', bg: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
   da_huy: { label: 'Đã hủy', bg: 'bg-stone-100 text-stone-600 border-stone-200', icon: XCircle }
 };
@@ -197,9 +198,18 @@ const ReservationsManagePage = () => {
                       )}
                       {res.status === 'da_xac_nhan' && (
                         <button
+                          onClick={() => handleUpdateStatus(res._id, 'da_den')}
+                          disabled={updatingId === res._id}
+                          className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-1 w-full"
+                        >
+                          <ArrowRight className="w-4 h-4" /> Đã đến (Check-in)
+                        </button>
+                      )}
+                      {res.status === 'da_den' && (
+                        <button
                           onClick={() => handleUpdateStatus(res._id, 'hoan_thanh')}
                           disabled={updatingId === res._id}
-                          className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-bold text-sm transition-colors disabled:opacity-50"
+                          className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 w-full"
                         >
                           Hoàn thành
                         </button>
