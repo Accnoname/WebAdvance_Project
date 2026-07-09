@@ -1,13 +1,25 @@
 const PaymentService = require('../services/payment.service');
 const { sendSuccess } = require('../utils/response.util');
 
+// ─── 1. Khách yêu cầu thanh toán tiền mặt ────────────────────────────────────
 const createPayment = async (req, res, next) => {
   try {
     const data = await PaymentService.createOfflinePayment(req.body);
-    res.status(201).json(sendSuccess('Tạo thanh toán thành công', data, 201));
+    res.status(201).json(sendSuccess('Yêu cầu thanh toán đã được gửi. Nhân viên sẽ đến bàn của bạn.', data, 201));
   } catch (error) { next(error); }
 };
 
+// ─── 2. Staff xác nhận đã thu tiền mặt ───────────────────────────────────────
+const confirmPayment = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const { method } = req.body;
+    const data = await PaymentService.confirmOfflinePayment(orderId, req.user._id, method);
+    res.status(200).json(sendSuccess('Xác nhận thanh toán thành công', data));
+  } catch (error) { next(error); }
+};
+
+// ─── 3. Tạo URL thanh toán VNPay ─────────────────────────────────────────────
 const createVNPayPayment = async (req, res, next) => {
   try {
     const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -16,13 +28,25 @@ const createVNPayPayment = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-const vnpayCallback = async (req, res, next) => {
+// ─── 4. Return URL: VNPay redirect về sau khi user thanh toán ────────────────
+//    ⚠️ CHỈ redirect frontend, KHÔNG update DB
+const vnpayReturn = (req, res, next) => {
   try {
-    const result = await PaymentService.handleVNPayCallback(req.query);
-    // [C6] Dùng result.isSuccess và result.responseCode — không dùng payment.status (undefined)
-    const redirectUrl = `${process.env.CLIENT_URL}/payment/result?success=${result.isSuccess}&code=${result.responseCode}`;
+    const result = PaymentService.handleVNPayReturn(req.query);
+    const frontendUrl = `${process.env.CLIENT_URL}/payment/result`;
+    const redirectUrl = `${frontendUrl}?success=${result.isSuccess}&code=${result.responseCode}&orderId=${result.orderId}&amount=${result.amount}`;
     res.redirect(redirectUrl);
   } catch (error) { next(error); }
 };
 
-module.exports = { createPayment, createVNPayPayment, vnpayCallback };
+// ─── 5. IPN: VNPay gọi ngầm — nơi DUY NHẤT update Database ──────────────────
+const vnpayIPN = async (req, res, next) => {
+  try {
+    const result = await PaymentService.handleVNPayIPN(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(200).json({ RspCode: '99', Message: 'Unknown error' });
+  }
+};
+
+module.exports = { createPayment, confirmPayment, createVNPayPayment, vnpayReturn, vnpayIPN };

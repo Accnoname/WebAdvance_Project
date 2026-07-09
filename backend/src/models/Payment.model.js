@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema({
   method:              { type: String, enum: ['tien_mat', 'chuyen_khoan', 'vnpay'], required: true },
   status:              {
     type: String,
-    enum: ['cho_thanh_toan', 'da_thanh_toan', 'that_bai', 'hoan_tien'],
+    enum: ['cho_thanh_toan', 'da_thanh_toan', 'that_bai'],
     default: 'cho_thanh_toan'
   },
   vnpayTransactionId:  { type: String, default: null },

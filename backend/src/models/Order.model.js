@@ -5,7 +5,6 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
   price:    { type: Number, required: true },   // snapshot giá lúc đặt
   note:     { type: String, default: '' },
-  variant:  { type: String, default: null },
   status:   {
     type: String,
     enum: ['cho_xac_nhan', 'dang_che_bien', 'cho_phuc_vu', 'hoan_thanh', 'huy'],
@@ -14,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  orderType:       { type: String, enum: ['tai_ban', 'mang_ve', 'giao_hang'], default: 'tai_ban' },
+  orderType:       { type: String, enum: ['tai_ban', 'giao_hang'], default: 'tai_ban' },
   table:           { type: mongoose.Schema.Types.ObjectId, ref: 'Table' }, // Optional
   deliveryAddress: { type: String, default: null }, // Cho giao hàng
   deliveryPhone:   { type: String, default: null }, // Cho giao hàng
@@ -30,6 +29,7 @@ const orderSchema = new mongoose.Schema({
     enum: ['tien_mat', 'chuyen_khoan', 'vnpay', 'khac'],
     default: 'tien_mat'
   },
+  isPaid: { type: Boolean, default: false },
   totalAmount: { type: Number, required: true },
   voucherCode: { type: String, default: null },
   discountAmount: { type: Number, default: 0 },
