@@ -189,7 +189,7 @@ const createVNPayPayment = async (orderId, ipAddr) => {
   const vnpayUrl = createVNPayUrl({
     orderId:     orderId,
     amount,
-    description: `Thanh toan don hang #${orderId}`,
+    description: `Thanh toan don hang ${orderId}`,
     ipAddr:      ipAddr,
   });
 

@@ -22,7 +22,10 @@ const confirmPayment = async (req, res, next) => {
 // ─── 3. Tạo URL thanh toán VNPay ─────────────────────────────────────────────
 const createVNPayPayment = async (req, res, next) => {
   try {
-    const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    let ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    if (ipAddr.includes(',')) ipAddr = ipAddr.split(',')[0].trim();
+    if (ipAddr === '::1' || ipAddr === '::ffff:127.0.0.1') ipAddr = '127.0.0.1';
+    
     const result = await PaymentService.createVNPayPayment(req.body.orderId, ipAddr);
     res.status(200).json(sendSuccess('Tạo URL VNPay thành công', { paymentUrl: result.vnpayUrl }));
   } catch (error) { next(error); }
