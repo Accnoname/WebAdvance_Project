@@ -12,16 +12,12 @@ export const MenuService = {
   },
   
   create: async (formData) => {
-    const response = await api.post('/menu', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post('/menu', formData);
     return response;
   },
   
   update: async (id, formData) => {
-    const response = await api.put(`/menu/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.put(`/menu/${id}`, formData);
     return response;
   },
   

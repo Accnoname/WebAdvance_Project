@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { OrderService } from '../../services/order.service';
 import { ReservationService } from '../../services/reservation.service';
-import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, Truck, X, CalendarCheck } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, CalendarCheck, Ticket, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import VoucherSelectorModal from '../../components/VoucherSelectorModal';
 import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
 
 const CartPage = () => {
   const { user } = useAuth();
   const {
-    items, tableId, orderType, deliveryAddress, deliveryPhone,
-    setTable, setOrderType, setDeliveryInfo, updateQuantity,
+    items, tableId,
+    setTable, updateQuantity,
     updateNote, removeItem, clearCart, getTotalAmount, getTotalItems
   } = useCartStore();
   const navigate = useNavigate();
@@ -21,6 +22,18 @@ const CartPage = () => {
   const [loadingRes, setLoadingRes] = useState(false);
   const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [orderNote, setOrderNote] = useState('');
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  const subTotal = getTotalAmount();
+  useEffect(() => {
+    if (appliedVoucher) {
+      setAppliedVoucher(null);
+      setDiscountAmount(0);
+      toast('Giỏ hàng thay đổi, vui lòng áp dụng lại mã giảm giá.', { icon: 'ℹ️' });
+    }
+  }, [subTotal]);
 
   // Chỉ lấy những reservation đã được xác nhận (da_xac_nhan) và có bàn
   const fetchReservations = async () => {
@@ -42,10 +55,10 @@ const CartPage = () => {
   };
 
   useEffect(() => {
-    if (user && orderType === 'tai_ban') {
+    if (user) {
       fetchReservations();
     }
-  }, [user, orderType]);
+  }, [user]);
 
   const handleSelectTableClick = () => {
     if (!user) {
@@ -76,12 +89,8 @@ const CartPage = () => {
       return;
     }
     if (isSubmitting) return;
-    if (orderType === 'tai_ban' && !tableId) {
+    if (!tableId) {
       toast.error('Vui lòng chọn bàn đặt trước của bạn!');
-      return;
-    }
-    if (orderType === 'giao_hang' && (!deliveryAddress?.trim() || !deliveryPhone?.trim())) {
-      toast.error('Vui lòng nhập địa chỉ và số điện thoại!');
       return;
     }
     if (items.length === 0) {
@@ -92,22 +101,19 @@ const CartPage = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        orderType,
-        tableId: orderType === 'tai_ban'
-          ? (typeof tableId === 'object' ? tableId?._id : tableId)
-          : undefined,
-        deliveryAddress: orderType === 'giao_hang' ? deliveryAddress : undefined,
-        deliveryPhone: orderType === 'giao_hang' ? deliveryPhone : undefined,
+        tableId: typeof tableId === 'object' ? tableId?._id : tableId,
         items: items.map(i => ({
           menuItemId: i.menuItem._id,
           quantity: i.quantity,
           note: i.note
         })),
-        note: orderNote
+        note: orderNote,
+        voucherCode: appliedVoucher?.code || undefined
       };
 
       const res = await OrderService.create(payload);
       if (res.success) {
+        clearCart();
         // Chuyển sang trang thanh toán với orderId
         navigate(`/payment/${res.data._id}`);
         toast.success('Đặt món thành công! Vui lòng chọn phương thức thanh toán.');
@@ -157,82 +163,30 @@ const CartPage = () => {
       {/* Thông tin đặt món */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100 mb-8">
         <h2 className="text-lg font-bold text-stone-800 mb-4">Thông tin đặt món</h2>
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <button
-            onClick={() => setOrderType('tai_ban')}
-            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
-              orderType === 'tai_ban'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-stone-100 bg-white text-stone-500 hover:border-stone-200'
-            }`}
-          >
-            <Store className={`w-6 h-6 mb-2 ${orderType === 'tai_ban' ? 'text-primary-600' : 'text-stone-400'}`} />
-            <span className="font-semibold text-sm">Ăn tại bàn</span>
-          </button>
 
-          <button
-            onClick={() => setOrderType('giao_hang')}
-            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
-              orderType === 'giao_hang'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-stone-100 bg-white text-stone-500 hover:border-stone-200'
-            }`}
-          >
-            <Truck className={`w-6 h-6 mb-2 ${orderType === 'giao_hang' ? 'text-primary-600' : 'text-stone-400'}`} />
-            <span className="font-semibold text-sm">Giao hàng</span>
-          </button>
-        </div>
-
-        {orderType === 'tai_ban' && (
-          <div className="animate-fade-in-up">
-            <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-semibold text-stone-700">Bàn đã đặt trước</label>
-              {tableId && (
-                <span className="text-sm text-primary-600 font-bold bg-primary-50 px-3 py-1 rounded-full">
-                  ✓ {getSelectedTableDisplay()}
-                </span>
-              )}
-            </div>
-            <button
-              onClick={handleSelectTableClick}
-              className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-stone-50 border border-stone-200 hover:border-primary-300 rounded-xl text-stone-900 font-bold transition-colors shadow-sm"
-            >
-              <CalendarCheck className="w-4 h-4 text-primary-600" />
-              Chọn bàn đặt trước của bạn
-            </button>
-            {confirmedReservations.length === 0 && !loadingRes && (
-              <p className="text-xs text-stone-400 mt-2">
-                Bạn chưa có đặt bàn nào được xác nhận.{' '}
-                <Link to="/reservation" className="text-primary-600 font-bold hover:underline">Đặt bàn ngay</Link>
-              </p>
+        <div className="animate-fade-in-up">
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm font-semibold text-stone-700">Bàn đã đặt trước</label>
+            {tableId && (
+              <span className="text-sm text-primary-600 font-bold bg-primary-50 px-3 py-1 rounded-full">
+                ✓ {getSelectedTableDisplay()}
+              </span>
             )}
           </div>
-        )}
-
-        {orderType === 'giao_hang' && (
-          <div className="animate-fade-in-up space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-1">Số điện thoại</label>
-              <input
-                type="tel"
-                placeholder="Nhập số điện thoại của bạn"
-                value={deliveryPhone}
-                onChange={(e) => setDeliveryInfo(deliveryAddress, e.target.value)}
-                className="w-full md:w-1/2 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-1">Địa chỉ nhận hàng</label>
-              <input
-                type="text"
-                placeholder="Nhập địa chỉ giao hàng chi tiết"
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryInfo(e.target.value, deliveryPhone)}
-                className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-              />
-            </div>
-          </div>
-        )}
+          <button
+            onClick={handleSelectTableClick}
+            className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-stone-50 border border-stone-200 hover:border-primary-300 rounded-xl text-stone-900 font-bold transition-colors shadow-sm"
+          >
+            <CalendarCheck className="w-4 h-4 text-primary-600" />
+            Chọn bàn đặt trước của bạn
+          </button>
+          {confirmedReservations.length === 0 && !loadingRes && (
+            <p className="text-xs text-stone-400 mt-2">
+              Bạn chưa có đặt bàn nào được xác nhận.{' '}
+              <Link to="/reservation" className="text-primary-600 font-bold hover:underline">Đặt bàn ngay</Link>
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Danh sách món */}
@@ -317,11 +271,39 @@ const CartPage = () => {
 
       {/* Tổng kết + Đặt món */}
       <div className="bg-stone-900 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-stone-900/10">
+        <div className="mb-6 pb-6 border-b border-stone-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex-1">
+            <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+              <Ticket className="w-5 h-5 text-primary-500" />
+              Khuyến mãi & Voucher
+            </h3>
+            {appliedVoucher ? (
+              <p className="text-sm text-stone-400">
+                Đã áp dụng mã <span className="font-bold text-primary-400">{appliedVoucher.code}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-stone-400">Chọn hoặc nhập mã khuyến mãi để được giảm giá</p>
+            )}
+          </div>
+          <button
+            onClick={() => setIsVoucherModalOpen(true)}
+            className="px-6 py-2.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-xl text-sm font-bold transition-colors text-white whitespace-nowrap"
+          >
+            {appliedVoucher ? 'Thay đổi mã' : 'Chọn Voucher'}
+          </button>
+        </div>
+
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
+          <div className="w-full md:w-auto">
             <p className="text-stone-400 text-sm font-medium mb-1">Tổng cộng ({getTotalItems()} món)</p>
+            {discountAmount > 0 && (
+              <div className="flex items-center gap-2 text-sm text-primary-400 mb-1 font-bold">
+                <span>Giảm giá:</span>
+                <span>-{discountAmount.toLocaleString('vi-VN')} VNĐ</span>
+              </div>
+            )}
             <div className="text-3xl font-display font-bold">
-              {getTotalAmount().toLocaleString('vi-VN')}
+              {Math.max(0, getTotalAmount() - discountAmount).toLocaleString('vi-VN')}
               <span className="text-xl ml-1 text-primary-400">VNĐ</span>
             </div>
           </div>
@@ -429,6 +411,18 @@ const CartPage = () => {
         </div>
       </div>
     )}
+
+    {/* Voucher Modal */}
+    <VoucherSelectorModal
+      isOpen={isVoucherModalOpen}
+      onClose={() => setIsVoucherModalOpen(false)}
+      subTotal={getTotalAmount()}
+      onApply={(voucher) => {
+        setAppliedVoucher(voucher);
+        setDiscountAmount(voucher.discountAmount);
+        toast.success(`Áp dụng mã ${voucher.code} thành công!`);
+      }}
+    />
     </>
   );
 };

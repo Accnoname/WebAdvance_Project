@@ -9,10 +9,7 @@ const getCart = async (userId) => {
         return resolve({
           user: userId,
           items: [],
-          orderType: 'tai_ban',
-          tableId: null,
-          deliveryAddress: '',
-          deliveryPhone: ''
+          tableId: null
         });
       }
       resolve(cart);

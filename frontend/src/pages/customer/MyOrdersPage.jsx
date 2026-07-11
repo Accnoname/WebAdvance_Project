@@ -163,9 +163,7 @@ const MyOrdersPage = () => {
                   </span>
                 </div>
                 <div className="text-xs text-[#d4c3a3] flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 font-medium">
-                  {order.orderType === 'tai_ban' && <span>Bàn số: {order.table?.tableNumber || '?'}</span>}
-                  {order.orderType === 'mang_ve' && <span>Đơn mang về</span>}
-                  {order.orderType === 'giao_hang' && <span>Giao đến: {order.deliveryAddress}</span>}
+                  <span>Bàn số: {order.table?.tableNumber || '?'}</span>
                   <span>•</span>
                   <span>{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
                 </div>

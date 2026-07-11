@@ -6,6 +6,7 @@ import {
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { OrderService } from '../../services/order.service';
 import { ReportService } from '../../services/report.service';
+import useSocket from '../../hooks/useSocket';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 
@@ -66,6 +67,21 @@ const ReportPage = () => {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  const socket = useSocket('manager');
+  useEffect(() => {
+    if (!socket) return;
+    const handleUpdate = () => {
+      fetchSummary();
+      fetchOrders();
+    };
+    socket.on('order:new', handleUpdate);
+    socket.on('order:status-changed', handleUpdate);
+    return () => {
+      socket.off('order:new', handleUpdate);
+      socket.off('order:status-changed', handleUpdate);
+    };
+  }, [socket, fetchSummary, fetchOrders]);
 
   const fmtMoney = (v) => v.toLocaleString('vi-VN') + 'đ';
 
@@ -234,7 +250,7 @@ const ReportPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 font-medium text-slate-700">
-                        {order.table?.tableNumber ? `Bàn ${order.table.tableNumber}` : 'Mang đi / Giao hàng'}
+                        {order.table?.tableNumber ? `Bàn ${order.table.tableNumber}` : 'Chưa có bàn'}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
                         {PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod}
