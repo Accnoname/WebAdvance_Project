@@ -17,24 +17,15 @@ const getDateRange = (period, customFrom, customTo) => {
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
   } else if (period === 'month') {
-    start.setDate(1);
-    start.setHours(0, 0, 0, 0);
-    end.setMonth(start.getMonth() + 1);
-    end.setDate(0); // Ngày cuối của tháng
-    end.setHours(23, 59, 59, 999);
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   } else if (period === 'quarter') {
     const quarter = Math.floor(now.getMonth() / 3);
-    start.setMonth(quarter * 3);
-    start.setDate(1);
-    start.setHours(0, 0, 0, 0);
-    end.setMonth((quarter + 1) * 3);
-    end.setDate(0);
-    end.setHours(23, 59, 59, 999);
+    start = new Date(now.getFullYear(), quarter * 3, 1, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), (quarter + 1) * 3, 0, 23, 59, 59, 999);
   } else if (period === 'year') {
-    start.setMonth(0, 1);
-    start.setHours(0, 0, 0, 0);
-    end.setMonth(11, 31);
-    end.setHours(23, 59, 59, 999);
+    start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
   } else if (period === 'custom' && customFrom && customTo) {
     start = new Date(customFrom);
     start.setHours(0, 0, 0, 0);
@@ -42,11 +33,8 @@ const getDateRange = (period, customFrom, customTo) => {
     end.setHours(23, 59, 59, 999);
   } else {
     // Default: month
-    start.setDate(1);
-    start.setHours(0, 0, 0, 0);
-    end.setMonth(start.getMonth() + 1);
-    end.setDate(0);
-    end.setHours(23, 59, 59, 999);
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
   }
   return { start, end };
 };

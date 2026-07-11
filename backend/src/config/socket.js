@@ -14,6 +14,7 @@ const initSocket = (server) => {
 
     socket.on('join-kitchen', () => socket.join('kitchen'));
     socket.on('join-staff', () => socket.join('staff'));
+    socket.on('join-manager', () => socket.join('manager'));
     socket.on('join-table', (tableId) => socket.join(`table:${tableId}`));
 
     // Lắng nghe sự kiện khách hàng gọi nhân viên

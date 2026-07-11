@@ -192,6 +192,7 @@ const OrderService = {
     if (io) {
       io.to('kitchen').emit('order:new', order);
       io.to('staff').emit('order:new', order);
+      io.to('manager').emit('order:new', order);
       if (table) {
         io.to('staff').emit('table:status-changed', { tableId: table._id, status: table.status });
       }
@@ -248,6 +249,7 @@ const OrderService = {
     if (io) {
       io.to('kitchen').emit('order:new', order); // Notify kitchen of new items (by sending updated order or custom event, but 'order:new' works for now or we can handle in frontend)
       io.to('staff').emit('order:status-changed', { orderId: order._id, status: order.orderStatus });
+      io.to('manager').emit('order:status-changed', { orderId: order._id, status: order.orderStatus });
       const tableId = order.table?._id || order.table;
       if (tableId) {
         io.to(`table:${tableId}`).emit('order:status-changed', { orderId: order._id, status: order.orderStatus });
@@ -300,6 +302,7 @@ const OrderService = {
       }
       io.to('staff').emit('order:status-changed', { orderId, status: orderStatus });
       io.to('kitchen').emit('order:status-changed', { orderId, status: orderStatus });
+      io.to('manager').emit('order:status-changed', { orderId, status: orderStatus });
     }
 
     return order;
@@ -367,6 +370,7 @@ const OrderService = {
       if (orderStatusChanged) {
         io.to('staff').emit('order:status-changed', { orderId, status: 'dang_xu_ly' });
         io.to('kitchen').emit('order:status-changed', { orderId, status: 'dang_xu_ly' });
+        io.to('manager').emit('order:status-changed', { orderId, status: 'dang_xu_ly' });
         if (order.table) {
           io.to(`table:${order.table._id}`).emit('order:status-changed', { orderId, status: 'dang_xu_ly' });
         }
