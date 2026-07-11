@@ -28,6 +28,7 @@ const StaffOrdersPage = () => {
 
     socket.on('order:new', (newOrder) => {
       setOrders(prev => {
+        if (prev.some(o => o._id === newOrder._id)) return prev;
         if (filter === 'all' || newOrder.orderStatus === filter) {
           return [newOrder, ...prev];
         }
