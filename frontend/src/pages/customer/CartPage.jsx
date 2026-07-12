@@ -11,7 +11,7 @@ import useAuth from '../../hooks/useAuth';
 const CartPage = () => {
   const { user } = useAuth();
   const {
-    items, tableId,
+    items, tableId, tableNumber,
     setTable, updateQuantity,
     updateNote, removeItem, clearCart, getTotalAmount, getTotalItems
   } = useCartStore();
@@ -78,16 +78,14 @@ const CartPage = () => {
     if (selectedReservation) {
       return `Bàn ${selectedReservation.table?.tableNumber} (Đặt trước)`;
     }
+    if (tableNumber) {
+      return `Bàn ${tableNumber} (Khách vãng lai)`;
+    }
     return `Bàn đã chọn`;
   };
 
   // Đặt món → tạo order → chuyển sang trang thanh toán
   const handleCheckout = async () => {
-    if (!user) {
-      toast.error('Vui lòng đăng nhập để đặt món!');
-      navigate('/login');
-      return;
-    }
     if (isSubmitting) return;
     if (!tableId) {
       toast.error('Vui lòng chọn bàn đặt trước của bạn!');
@@ -180,7 +178,7 @@ const CartPage = () => {
             <CalendarCheck className="w-4 h-4 text-primary-600" />
             Chọn bàn đặt trước của bạn
           </button>
-          {confirmedReservations.length === 0 && !loadingRes && (
+          {confirmedReservations.length === 0 && !loadingRes && !tableId && (
             <p className="text-xs text-stone-400 mt-2">
               Bạn chưa có đặt bàn nào được xác nhận.{' '}
               <Link to="/reservation" className="text-primary-600 font-bold hover:underline">Đặt bàn ngay</Link>
@@ -346,10 +344,10 @@ const CartPage = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
               </div>
             ) : confirmedReservations.length === 0 ? (
-              <div className="text-center py-10">
+              <div className="text-center py-8">
                 <CalendarCheck className="w-12 h-12 text-stone-300 mx-auto mb-3" />
                 <p className="text-stone-500 font-medium mb-1">Không có đặt bàn nào được xác nhận</p>
-                <p className="text-stone-400 text-sm mb-4">Bạn cần đặt bàn trước và được nhà hàng xác nhận mới có thể chọn</p>
+                <p className="text-stone-400 text-sm mb-4">Bạn cần đặt bàn trước và được nhà hàng xác nhận mới có thể chọn bàn online.</p>
                 <Link
                   to="/reservation"
                   onClick={() => setIsTableModalOpen(false)}

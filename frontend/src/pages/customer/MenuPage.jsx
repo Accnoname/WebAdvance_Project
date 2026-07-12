@@ -36,7 +36,7 @@ const MenuPage = () => {
           if (res.success && res.data) {
             const matchedTable = res.data.find(t => t.tableNumber === parseInt(tableNumber));
             if (matchedTable) {
-              setTable(matchedTable._id);
+              setTable(matchedTable._id, matchedTable.tableNumber);
               toast.success(`Đã nhận bàn số ${tableNumber}`);
             } else {
               toast.error(`Không tìm thấy bàn số ${tableNumber}`);

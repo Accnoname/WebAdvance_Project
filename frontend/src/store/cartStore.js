@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 export const useCartStore = create((set, get) => ({
   items: [],
   tableId: null,
+  tableNumber: null,
   orderType: 'tai_ban',
   deliveryAddress: '',
   deliveryPhone: '',
@@ -50,10 +51,10 @@ export const useCartStore = create((set, get) => ({
     }
   },
 
-  setTable: (tableId) => {
+  setTable: (tableId, tableNumber = null) => {
     // Prevent accidentally storing a full Table object in localStorage
     const safeTableId = typeof tableId === 'object' && tableId ? tableId._id || tableId.tableNumber : tableId;
-    set({ tableId: safeTableId });
+    set({ tableId: safeTableId, ...(tableNumber ? { tableNumber } : {}) });
     get().syncCart();
   },
 
