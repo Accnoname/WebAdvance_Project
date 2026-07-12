@@ -261,7 +261,10 @@ const handleVNPayIPN = async (vnpayData) => {
   });
 
   if (isSuccess) {
-    await Order.findByIdAndUpdate(orderId, { isPaid: true });
+    await Order.findByIdAndUpdate(orderId, { 
+      isPaid: true,
+      paymentMethod: 'vnpay'
+    });
 
     if (order.voucherCode) {
       await Voucher.updateOne(
