@@ -11,7 +11,7 @@ const cartSchema = new mongoose.Schema({
   user:            { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   items:           [cartItemSchema],
   tableId:         { type: mongoose.Schema.Types.ObjectId, ref: 'Table', default: null },
-  orderType:       { type: String, enum: ['tai_ban', 'giao_hang', 'mang_ve'], default: 'tai_ban' },
+  orderType:       { type: String, enum: ['tai_ban', 'giao_hang'], default: 'tai_ban' },
   deliveryAddress: { type: String, default: '' },
   deliveryPhone:   { type: String, default: '' },
 }, { timestamps: true });

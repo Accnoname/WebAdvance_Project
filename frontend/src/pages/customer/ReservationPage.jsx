@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
-import { useCartStore } from '../../store/cartStore';
 
 // ─── Dữ liệu khu vực ngồi ──────────────────────────────────────────────────
 const AREAS = [
@@ -96,18 +95,7 @@ const ReservationPage = () => {
   const [menuActiveCategory, setMenuActiveCategory] = useState('all');
 
   // Pre-order states
-  const [preOrderItems, setPreOrderItems] = useState(() => {
-    const cartItems = useCartStore.getState().items;
-    const initialItems = {};
-    cartItems.forEach(item => {
-      if (initialItems[item.menuItem._id]) {
-        initialItems[item.menuItem._id].quantity += item.quantity;
-      } else {
-        initialItems[item.menuItem._id] = { menuItem: item.menuItem, quantity: item.quantity };
-      }
-    });
-    return initialItems;
-  });
+  const [preOrderItems, setPreOrderItems] = useState({});
 
   // Tải menu 1 lần
   useEffect(() => {
@@ -210,7 +198,6 @@ const ReservationPage = () => {
         note: buildNote(),
         items: itemsPayload
       });
-      useCartStore.getState().clearCart();
       setIsSuccess(true);
       toast.success('Đặt bàn thành công!');
     } catch (error) {

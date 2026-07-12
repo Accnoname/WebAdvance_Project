@@ -1,40 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, ArrowRight, ArrowLeft, ShieldCheck, Eye, EyeOff, AlertTriangle, KeyRound } from 'lucide-react';
+import { Lock, ArrowRight, ArrowLeft, ShieldCheck, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import authService from '../../services/auth.service';
 import toast from 'react-hot-toast';
 
 const ResetPasswordPage = () => {
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Lấy email và otp từ state khi chuyển trang từ ForgotPasswordPage
-  const { email, otp: initialOtp } = location.state || {};
-
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
-    defaultValues: {
-      otp: initialOtp || '',
-    }
-  });
-
+  // Lấy resetToken và otp từ state khi chuyển trang từ ForgotPasswordPage
+  const { resetToken, otp } = location.state || {};
   const newPassword = watch('newPassword');
 
-  // Nếu không có email → redirect về forgot-password
+  // Nếu không có resetToken → redirect về forgot-password
   useEffect(() => {
-    if (!email) {
+    if (!resetToken) {
       toast.error('Phiên làm việc không hợp lệ. Vui lòng thực hiện lại từ đầu.');
       navigate('/forgot-password', { replace: true });
     }
-  }, [email, navigate]);
+  }, [resetToken, navigate]);
 
   const onSubmit = async (data) => {
     try {
       await authService.resetPassword({
-        email,
-        otp: data.otp,
+        resetToken,
         newPassword: data.newPassword,
       });
       toast.success('Đặt lại mật khẩu thành công! Hãy đăng nhập lại.');
@@ -105,13 +98,13 @@ const ResetPasswordPage = () => {
           </div>
 
           {/* ⚠️ Banner OTP TEST MODE — xóa khi production */}
-          {initialOtp && (
+          {otp && (
             <div className="mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
               <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-amber-800">Chế độ TEST</p>
                 <p className="text-xs text-amber-700 mt-0.5">
-                  Mã OTP của bạn là: <strong className="text-amber-900 text-base font-mono tracking-widest">{initialOtp}</strong>
+                  Mã OTP của bạn là: <strong className="text-amber-900 text-base font-mono tracking-widest">{otp}</strong>
                 </p>
                 <p className="text-xs text-amber-600 mt-1">
                   (Chỉ hiển thị vì chưa có email server — xóa khi production)
@@ -121,32 +114,6 @@ const ResetPasswordPage = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Mã xác thực OTP */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-stone-700 block">
-                Mã xác thực OTP
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <KeyRound className="h-5 w-5 text-stone-400 group-focus-within:text-primary-500 transition-colors" />
-                </div>
-                <input
-                  id="reset-otp"
-                  type="text"
-                  maxLength={6}
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
-                  placeholder="Nhập mã OTP 6 số"
-                  {...register('otp', {
-                    required: 'Vui lòng nhập mã OTP',
-                    pattern: { value: /^[0-9]{6}$/, message: 'Mã OTP phải có đúng 6 chữ số' }
-                  })}
-                />
-              </div>
-              {errors.otp && (
-                <p className="text-rose-500 text-xs mt-1 font-medium">{errors.otp.message}</p>
-              )}
-            </div>
-
             {/* Mật khẩu mới */}
             <div className="space-y-2">
               <label className="text-sm font-semibold text-stone-700 block">

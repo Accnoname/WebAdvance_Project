@@ -4,13 +4,53 @@ const MenuItem = require('../models/MenuItem.model');
 const Voucher = require('../models/Voucher.model');
 const { getIO } = require('../config/socket');
 const { AppError } = require('../middlewares/error.middleware');
-const VoucherService = require('./voucher.service');
 
 const validateAndCalculateVoucher = async (voucherCode, subTotal, isExistingOrder = false) => {
   if (!voucherCode) {
     return { voucherCode: null, discountAmount: 0, finalAmount: subTotal };
   }
-  return await VoucherService.validateVoucher(voucherCode, subTotal, isExistingOrder);
+
+  const uppercaseCode = voucherCode.toUpperCase();
+  const voucher = await Voucher.findOne({ code: uppercaseCode });
+
+  if (!voucher) {
+    throw new AppError('Mã giảm giá không tồn tại', 404);
+  }
+
+  if (!voucher.isAvailable) {
+    throw new AppError('Mã giảm giá hiện không khả dụng', 400);
+  }
+
+  if (!isExistingOrder) {
+    const now = new Date();
+    if (now > new Date(voucher.expiryDate)) {
+      throw new AppError('Mã giảm giá đã hết hạn sử dụng', 400);
+    }
+
+    if (voucher.maxUses !== null && voucher.usedCount >= voucher.maxUses) {
+      throw new AppError('Mã giảm giá đã hết lượt sử dụng', 400);
+    }
+  }
+
+  if (subTotal < voucher.minOrderAmount) {
+    throw new AppError(`Đơn hàng tối thiểu phải từ ${voucher.minOrderAmount.toLocaleString('vi-VN')}đ để sử dụng mã này`, 400);
+  }
+
+  let discountAmount = 0;
+  if (voucher.discountType === 'percentage') {
+    discountAmount = Math.floor(subTotal * (voucher.discountValue / 100));
+  } else if (voucher.discountType === 'fixed') {
+    discountAmount = voucher.discountValue;
+  }
+
+  discountAmount = Math.max(0, Math.min(discountAmount, subTotal));
+  const finalAmount = subTotal - discountAmount;
+
+  return {
+    voucherCode: voucher.code,
+    discountAmount,
+    finalAmount
+  };
 };
 
 const OrderService = {
@@ -116,105 +156,53 @@ const OrderService = {
     let discountAmount = 0;
     let finalAmount = totalAmount;
 
-    let reservedVoucherCode = null;
-
-    try {
-      if (data.voucherCode) {
-        const uppercaseCode = data.voucherCode.toUpperCase();
-        const unpaidQuery = {
-          voucherCode: uppercaseCode,
-          orderStatus: 'moi',
-          isPaid: false
-        };
-
-        if (user && user.role === 'khach_hang') {
-          unpaidQuery.customer = user._id;
-        } else if (table) {
-          unpaidQuery.table = table._id;
-        }
-
-        if (unpaidQuery.customer || unpaidQuery.table) {
-          const priorUnpaidOrders = await Order.find(unpaidQuery);
-          for (const priorOrder of priorUnpaidOrders) {
-            await OrderService.updateStatus(priorOrder._id, 'da_huy');
-          }
-        }
-
-        const voucherCalc = await validateAndCalculateVoucher(data.voucherCode, totalAmount, false);
-        voucherCode = voucherCalc.voucherCode;
-        discountAmount = voucherCalc.discountAmount;
-        finalAmount = voucherCalc.finalAmount;
-
-        const now = new Date();
-        const updatedVoucher = await Voucher.findOneAndUpdate(
-          {
-            code: uppercaseCode,
-            isAvailable: true,
-            expiryDate: { $gt: now },
-            $or: [
-              { maxUses: null },
-              { $expr: { $lt: ["$usedCount", "$maxUses"] } }
-            ]
-          },
-          { $inc: { usedCount: 1 } },
-          { new: true }
-        );
-
-        if (!updatedVoucher) {
-          throw new AppError('Mã giảm giá đã hết lượt sử dụng hoặc không khả dụng', 400);
-        }
-        reservedVoucherCode = voucherCode;
-      }
-
-      const order = new Order({
-        orderType: data.orderType || 'tai_ban',
-        table: table ? table._id : null,
-        deliveryAddress: data.deliveryAddress || null,
-        deliveryPhone: data.deliveryPhone || null,
-        customer: user?.role === 'khach_hang' ? user._id : null,
-        orderedBy: user ? user._id : null,
-        items: processedItems,
-        totalAmount,
-        voucherCode,
-        discountAmount,
-        finalAmount,
-        note: data.note || ''
-      });
-
-      await order.save();
-
-      // Update table status
-      if (table && (table.status === 'trong' || table.status === 'dat_truoc')) {
-        table.status = 'dang_phuc_vu';
-        table.currentOrder = order._id;
-        await table.save();
-      }
-
-      // Populate for socket
-      await order.populate('table');
-      await order.populate('items.menuItem');
-      await order.populate('customer', 'name');
-
-      // Emit socket events
-      const io = getIO();
-      if (io) {
-        io.to('kitchen').emit('order:new', order);
-        io.to('staff').emit('order:new', order);
-        if (table) {
-          io.to('staff').emit('table:status-changed', { tableId: table._id, status: table.status });
-        }
-      }
-
-      return order;
-    } catch (error) {
-      if (reservedVoucherCode) {
-        await Voucher.updateOne(
-          { code: reservedVoucherCode.toUpperCase() },
-          { $inc: { usedCount: -1 } }
-        );
-      }
-      throw error;
+    if (data.voucherCode) {
+      const voucherCalc = await validateAndCalculateVoucher(data.voucherCode, totalAmount, false);
+      voucherCode = voucherCalc.voucherCode;
+      discountAmount = voucherCalc.discountAmount;
+      finalAmount = voucherCalc.finalAmount;
     }
+
+    const order = new Order({
+      orderType: data.orderType || 'tai_ban',
+      table: table ? table._id : null,
+      deliveryAddress: data.deliveryAddress || null,
+      deliveryPhone: data.deliveryPhone || null,
+      customer: user?.role === 'khach_hang' ? user._id : null,
+      orderedBy: user ? user._id : null,
+      items: processedItems,
+      totalAmount,
+      voucherCode,
+      discountAmount,
+      finalAmount,
+      note: data.note || ''
+    });
+
+    await order.save();
+
+    // Update table status
+    if (table && (table.status === 'trong' || table.status === 'dat_truoc')) {
+      table.status = 'dang_phuc_vu';
+      table.currentOrder = order._id;
+      await table.save();
+    }
+
+    // Populate for socket
+    await order.populate('table');
+    await order.populate('items.menuItem');
+    await order.populate('customer', 'name');
+
+    // Emit socket events
+    const io = getIO();
+    if (io) {
+      io.to('kitchen').emit('order:new', order);
+      io.to('staff').emit('order:new', order);
+      if (table) {
+        io.to('staff').emit('table:status-changed', { tableId: table._id, status: table.status });
+      }
+    }
+
+    return order;
   },
 
   addItems: async (orderId, newItems) => {
@@ -280,13 +268,6 @@ const OrderService = {
 
     // [C1] Lưu tableId TRƯỚC khi có thể bị reset về null
     const tableId = order.table?._id || order.table || null;
-
-    if (orderStatus === 'da_huy' && order.orderStatus !== 'da_huy' && order.voucherCode) {
-      await Voucher.updateOne(
-        { code: order.voucherCode.toUpperCase() },
-        { $inc: { usedCount: -1 } }
-      );
-    }
 
     order.orderStatus = orderStatus;
 
@@ -357,10 +338,6 @@ const OrderService = {
           order.voucherCode = null;
           order.discountAmount = 0;
           order.finalAmount = order.totalAmount;
-          await Voucher.updateOne(
-            { code: voucher.code },
-            { $inc: { usedCount: -1 } }
-          );
         } else if (voucher) {
           let discountAmount = 0;
           if (voucher.discountType === 'percentage') {

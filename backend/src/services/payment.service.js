@@ -125,6 +125,13 @@ const confirmOfflinePayment = async (orderId, processedBy, method = 'tien_mat') 
   order.paymentMethod = method;
   await order.save();
 
+  if (order.voucherCode) {
+    await Voucher.updateOne(
+      { code: order.voucherCode.toUpperCase() },
+      { $inc: { usedCount: 1 } }
+    );
+  }
+
   const io = getIO();
   if (io) {
     io.to('staff').emit('payment:success', {
@@ -255,6 +262,13 @@ const handleVNPayIPN = async (vnpayData) => {
 
   if (isSuccess) {
     await Order.findByIdAndUpdate(orderId, { isPaid: true });
+
+    if (order.voucherCode) {
+      await Voucher.updateOne(
+        { code: order.voucherCode.toUpperCase() },
+        { $inc: { usedCount: 1 } }
+      );
+    }
 
     const io = getIO();
     if (io) {

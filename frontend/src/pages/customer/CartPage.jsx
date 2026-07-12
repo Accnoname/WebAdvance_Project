@@ -5,7 +5,7 @@ import { ReservationService } from '../../services/reservation.service';
 import { TableService } from '../../services/table.service';
 import formatCurrency from '../../utils/formatCurrency';
 import VoucherSelectorModal from '../../components/VoucherSelectorModal';
-import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag, Truck, X, Tag, CalendarClock } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, Loader2, Store, ShoppingBag, Truck, X, Tag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import useAuth from '../../hooks/useAuth';
@@ -19,16 +19,57 @@ const CartPage = () => {
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reservations, setReservations] = useState([]);
+  const [tablesList, setTablesList] = useState([]);
+  const [loadingRes, setLoadingRes] = useState(false);
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false);
   const [orderNote, setOrderNote] = useState('');
 
-  useEffect(() => {
-    // Đảm bảo orderType luôn là giao_hang hoặc mang_ve
-    if (orderType !== 'giao_hang' && orderType !== 'mang_ve') {
-      setOrderType('mang_ve');
+  const fetchReservations = async () => {
+    if (!user) return;
+    setLoadingRes(true);
+    try {
+      const res = await ReservationService.getMyReservations();
+      if (res.success) {
+        setReservations(res.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch reservations:', error);
+    } finally {
+      setLoadingRes(false);
     }
-  }, [orderType, setOrderType]);
+  };
 
+  const fetchTables = async () => {
+    try {
+      const res = await TableService.getAll();
+      if (res.success) {
+        setTablesList(res.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tables:', error);
+    }
+  };
 
+  useEffect(() => {
+    if (user && orderType === 'tai_ban') {
+      fetchReservations();
+      fetchTables();
+    }
+  }, [user, orderType]);
+
+  const handleSelectTableClick = () => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để chọn bàn!');
+      navigate('/login');
+      return;
+    }
+    if (tablesList.length === 0) {
+      toast.error('Không tìm thấy danh sách bàn ăn trong nhà hàng!');
+      return;
+    }
+    setIsTableModalOpen(true);
+  };
 
   const handleCheckout = async () => {
     if (!user) {
@@ -37,13 +78,12 @@ const CartPage = () => {
       return;
     }
     if (isSubmitting) return;
-    
-    if (orderType === 'giao_hang' && (!deliveryAddress?.trim() || !deliveryPhone?.trim())) {
-      toast.error('Vui lòng nhập địa chỉ và số điện thoại!');
+    if (orderType === 'tai_ban' && !tableId) {
+      toast.error('Vui lòng chọn bàn!');
       return;
     }
-    if (orderType === 'mang_ve' && !deliveryPhone?.trim()) {
-      toast.error('Vui lòng nhập số điện thoại liên hệ!');
+    if (orderType === 'giao_hang' && (!deliveryAddress?.trim() || !deliveryPhone?.trim())) {
+      toast.error('Vui lòng nhập địa chỉ và số điện thoại!');
       return;
     }
     if (items.length === 0) {
@@ -54,7 +94,7 @@ const CartPage = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        orderType: orderType,
+        orderType,
         items: items.map(i => ({
           menuItemId: i.menuItem._id,
           quantity: i.quantity,
@@ -64,10 +104,10 @@ const CartPage = () => {
         note: orderNote
       };
 
-      if (orderType === 'giao_hang') {
+      if (orderType === 'tai_ban') {
+        payload.tableId = typeof tableId === 'object' ? tableId?._id : tableId;
+      } else if (orderType === 'giao_hang') {
         payload.deliveryAddress = deliveryAddress;
-        payload.deliveryPhone = deliveryPhone;
-      } else if (orderType === 'mang_ve') {
         payload.deliveryPhone = deliveryPhone;
       }
 
@@ -88,15 +128,14 @@ const CartPage = () => {
     }
   };
 
-  const handleApplyVoucher = async (code) => {
-    const voucherCodeToApply = typeof code === 'string' ? code : inputVoucher;
-    if (!voucherCodeToApply || !voucherCodeToApply.trim()) {
+  const handleApplyVoucher = async () => {
+    if (!inputVoucher.trim()) {
       toast.error('Vui lòng nhập mã giảm giá!');
       return;
     }
     setIsApplyingVoucher(true);
     try {
-      await applyVoucher(voucherCodeToApply.trim());
+      await applyVoucher(inputVoucher.trim());
       toast.success('Áp dụng mã giảm giá thành công!');
       setInputVoucher('');
     } catch (error) {
@@ -132,7 +171,15 @@ const CartPage = () => {
     );
   }
 
-
+  const getTableNumber = (tId) => {
+    if (!tId) return '';
+    if (typeof tId === 'object' && tId) return tId.tableNumber;
+    const foundTable = tablesList.find(t => t._id === tId);
+    if (foundTable) return foundTable.tableNumber;
+    const foundRes = reservations.find(r => r.table?._id === tId);
+    if (foundRes) return foundRes.table?.tableNumber;
+    return tId;
+  };
 
   return (
     <>
@@ -154,6 +201,18 @@ const CartPage = () => {
         <h2 className="text-lg font-bold text-stone-800 mb-4">Thông tin đặt món</h2>
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <button
+            onClick={() => setOrderType('tai_ban')}
+            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
+              orderType === 'tai_ban'
+                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                : 'border-stone-100 bg-white text-stone-500 hover:border-stone-200'
+            }`}
+          >
+            <Store className={`w-6 h-6 mb-2 ${orderType === 'tai_ban' ? 'text-primary-600' : 'text-stone-400'}`} />
+            <span className="font-semibold text-sm">Ăn tại bàn</span>
+          </button>
+
+          <button
             onClick={() => setOrderType('giao_hang')}
             className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
               orderType === 'giao_hang'
@@ -164,32 +223,39 @@ const CartPage = () => {
             <Truck className={`w-6 h-6 mb-2 ${orderType === 'giao_hang' ? 'text-primary-600' : 'text-stone-400'}`} />
             <span className="font-semibold text-sm">Giao hàng</span>
           </button>
-
-          <button
-            onClick={() => setOrderType('mang_ve')}
-            className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl border-2 transition-all ${
-              orderType === 'mang_ve'
-                ? 'border-primary-500 bg-primary-50 text-primary-700'
-                : 'border-stone-100 bg-white text-stone-500 hover:border-stone-200'
-            }`}
-          >
-            <Store className={`w-6 h-6 mb-2 ${orderType === 'mang_ve' ? 'text-primary-600' : 'text-stone-400'}`} />
-            <span className="font-semibold text-sm">Mang về (Đến lấy)</span>
-          </button>
         </div>
 
-        <div className="animate-fade-in-up space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-1">Số điện thoại liên hệ</label>
-            <input 
-              type="tel" 
-              placeholder="Nhập số điện thoại của bạn"
-              value={deliveryPhone}
-              onChange={(e) => setDeliveryInfo(deliveryAddress, e.target.value)}
-              className="w-full md:w-1/2 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-            />
+        {orderType === 'tai_ban' && (
+          <div className="animate-fade-in-up">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-semibold text-stone-700">Bàn đã đặt</label>
+              {tableId && (
+                <span className="text-sm text-primary-600 font-bold bg-primary-50 px-3 py-1 rounded-full">
+                  Đã chọn: Bàn {getTableNumber(tableId)}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleSelectTableClick}
+              className="w-full md:w-1/2 flex items-center justify-center gap-2 px-4 py-3 bg-stone-50 border border-stone-200 hover:border-primary-300 rounded-xl text-stone-900 font-bold transition-colors shadow-sm"
+            >
+              🗺️ Bấm để chọn bàn
+            </button>
           </div>
-          {orderType === 'giao_hang' && (
+        )}
+
+        {orderType === 'giao_hang' && (
+          <div className="animate-fade-in-up space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-stone-700 mb-1">Số điện thoại</label>
+              <input 
+                type="tel" 
+                placeholder="Nhập số điện thoại của bạn"
+                value={deliveryPhone}
+                onChange={(e) => setDeliveryInfo(deliveryAddress, e.target.value)}
+                className="w-full md:w-1/2 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+              />
+            </div>
             <div>
               <label className="block text-sm font-semibold text-stone-700 mb-1">Địa chỉ nhận hàng</label>
               <input 
@@ -200,8 +266,8 @@ const CartPage = () => {
                 className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-stone-100 mb-8">
@@ -348,40 +414,89 @@ const CartPage = () => {
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-4 md:mt-0">
-            <button
-              onClick={() => navigate('/reservation')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 bg-[#1a1208] hover:bg-[#2a1d0d] text-[#d4a85a] border border-[#d4a85a]/30 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all active:scale-95 group"
-              title="Dùng các món trong giỏ hàng để Đặt lịch ăn tại quán"
-            >
-              <CalendarClock className="w-5 h-5" />
-              Chuyển sang Đặt Bàn
-            </button>
-            <button
-              onClick={handleCheckout}
-              disabled={isSubmitting}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  Thanh Toán Ngay
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleCheckout}
+            disabled={isSubmitting}
+            className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-95 group disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                Đặt Món Ngay
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
+
+    {/* Table Selection Modal */}
+    {isTableModalOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in-up">
+          <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+            <div>
+              <h2 className="text-2xl font-bold text-stone-900">Chọn bàn ăn của bạn</h2>
+              <p className="text-stone-500 text-sm mt-1">Vui lòng chọn số bàn bạn đang ngồi để nhà bếp phục vụ đúng vị trí</p>
+            </div>
+            <button onClick={() => setIsTableModalOpen(false)} className="p-2 text-stone-400 hover:text-stone-600 bg-white rounded-full shadow-sm hover:shadow">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="p-6 max-h-[60vh] overflow-y-auto">
+            {tablesList.length === 0 ? (
+              <div className="flex justify-center py-10 text-stone-500">
+                <Loader2 className="w-8 h-8 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {tablesList.map(t => {
+                  const isSelected = tableId === t._id;
+                  
+                  return (
+                    <button
+                      key={t._id}
+                      onClick={() => {
+                        setTable(t._id);
+                        setIsTableModalOpen(false);
+                      }}
+                      className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl border-2 transition-all p-3 ${
+                        isSelected
+                          ? 'bg-primary-50 border-primary-500 text-primary-700 shadow-md scale-105'
+                          : 'bg-white border-stone-200 hover:border-primary-300 hover:shadow text-stone-700'
+                      }`}
+                    >
+                      <span className="text-3xl font-black mb-1">{t.tableNumber}</span>
+                      <span className="text-xs uppercase font-bold text-primary-600 mb-1">
+                        Bàn {t.tableNumber}
+                      </span>
+                      <span className="text-[10px] text-stone-400 capitalize">
+                        {t.capacity} chỗ | {t.area}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
 
     {/* Voucher Selector Modal */}
     <VoucherSelectorModal
       isOpen={isVoucherModalOpen}
       onClose={() => setIsVoucherModalOpen(false)}
       onSelectVoucher={(code) => {
-        handleApplyVoucher(code);
+        setInputVoucher(code);
+        // Gọi applyVoucher ngay lập tức
+        setTimeout(() => {
+          const btn = document.getElementById('btn-apply-voucher');
+          if (btn) btn.click();
+        }, 100);
       }}
       cartTotal={getTotalAmount()}
     />
