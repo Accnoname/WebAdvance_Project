@@ -3,8 +3,8 @@ const router = express.Router();
 const OrderController = require('../controllers/order.controller');
 const { authenticate, optionalAuthenticate, authorizeRole } = require('../middlewares/auth.middleware');
 
-// Route tạo đơn hàng cho phép guest
-router.post('/', optionalAuthenticate, OrderController.create);
+// Route tạo đơn hàng (Bắt buộc đăng nhập)
+router.post('/', authenticate, OrderController.create);
 
 // Các route đơn hàng khác yêu cầu đăng nhập
 router.use(authenticate);

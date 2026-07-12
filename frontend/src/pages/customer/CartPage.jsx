@@ -101,9 +101,15 @@ const CartPage = () => {
     return `Bàn đã chọn`;
   };
 
-  // Đặt món → tạo order → chuyển sang trang thanh toán
   const handleCheckout = async () => {
     if (isSubmitting) return;
+
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để đặt món!');
+      navigate('/login');
+      return;
+    }
+
     if (!tableId) {
       toast.error('Vui lòng chọn bàn đặt trước của bạn!');
       return;

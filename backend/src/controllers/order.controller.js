@@ -38,8 +38,6 @@ const getMyOrderById = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    // req.user might be undefined if not logged in (guest scanning QR)
-    // For this simple system, allow guest orders
     const data = await OrderService.create(req.body, req.user);
     res.status(201).json(sendSuccess('Đặt món thành công', data, 201));
   } catch (error) { next(error); }
