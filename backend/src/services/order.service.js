@@ -266,23 +266,11 @@ const OrderService = {
 
     order.orderStatus = orderStatus;
 
-    // Nếu hoàn thành hoặc hủy → giải phóng bàn
+    // Chỉ cập nhật trạng thái đơn hàng, không tự động giải phóng bàn
+    // Bàn sẽ được giải phóng qua API quản lý bàn / đặt trước
     if (['hoan_thanh', 'da_huy'].includes(orderStatus)) {
       if (orderStatus === 'hoan_thanh' && paymentMethod) {
         order.paymentMethod = paymentMethod;
-      }
-      if (tableId) {
-        const table = await Table.findById(tableId);
-        if (table) {
-          table.status = 'trong';
-          table.currentOrder = null;
-          await table.save();
-
-          const io = getIO();
-          if (io) {
-            io.to('staff').emit('table:status-changed', { tableId: table._id, status: 'trong' });
-          }
-        }
       }
     }
 

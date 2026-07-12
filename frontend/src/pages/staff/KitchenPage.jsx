@@ -161,7 +161,6 @@ const KitchenPage = () => {
         entry.totalQuantity += item.quantity;
         entry.tables.push({
           tableNumber: order.table?.tableNumber || '?',
-          orderType: order.orderType,
           orderId: order._id,
           itemId: item._id,
           quantity: item.quantity
@@ -247,9 +246,7 @@ const KitchenPage = () => {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                      {order.orderType === 'tai_ban' ? `Bàn ${order.table?.tableNumber || '?'}` : 
-                       order.orderType === 'mang_ve' ? <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-sm">Mang về</span> : 
-                       <span className="bg-primary-100 text-primary-700 px-2 py-1 rounded-lg text-sm">Giao hàng</span>}
+                      Bàn {order.table?.tableNumber || '?'}
                       {(isPriority || isLate) && <AlertCircle className="w-5 h-5 text-rose-500 animate-pulse" />}
                     </h3>
                     <LiveTimer createdAt={order.createdAt} isPriority={isPriority} />
@@ -338,9 +335,7 @@ const KitchenPage = () => {
                   <div className="flex flex-wrap gap-2 mb-6">
                     {agg.tables.map((t, i) => (
                       <span key={i} className="px-3 py-1.5 bg-stone-100 text-stone-900 font-bold text-sm rounded-lg border border-stone-200 flex items-center gap-1 shadow-sm">
-                        {t.orderType === 'tai_ban' ? `Bàn ${t.tableNumber}` : 
-                         t.orderType === 'mang_ve' ? <span className="text-amber-600">Mang về</span> : 
-                         <span className="text-primary-600">Giao hàng</span>} 
+                        Bàn {t.tableNumber} 
                         (x{t.quantity})
                       </span>
                     ))}

@@ -183,8 +183,7 @@ const StaffOrdersPage = () => {
           items.push({
             ...item,
             orderId: order._id,
-            tableNumber: order.table?.tableNumber,
-            orderType: order.orderType
+            tableNumber: order.table?.tableNumber
           });
         }
       });
@@ -246,15 +245,9 @@ const StaffOrdersPage = () => {
                   </div>
                 </div>
                 <div className="mb-4">
-                  {item.orderType === 'tai_ban' ? (
-                    <span className="inline-flex items-center gap-1 text-sm font-bold bg-stone-900 text-white px-3 py-1 rounded-lg">
-                      Bàn {item.tableNumber || '?'}
-                    </span>
-                  ) : item.orderType === 'mang_ve' ? (
-                    <span className="text-sm font-bold bg-amber-200 text-amber-800 px-3 py-1 rounded-lg">Mang về</span>
-                  ) : (
-                    <span className="text-sm font-bold bg-primary-100 text-primary-700 px-3 py-1 rounded-lg">Giao hàng</span>
-                  )}
+                  <span className="inline-flex items-center gap-1 text-sm font-bold bg-stone-900 text-white px-3 py-1 rounded-lg">
+                    Bàn {item.tableNumber || '?'}
+                  </span>
                 </div>
                 <button
                   onClick={() => handleItemServed(item.orderId, item._id)}
