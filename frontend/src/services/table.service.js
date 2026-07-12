@@ -6,6 +6,12 @@ export const TableService = {
     return response;
   },
   
+  // Kiểm tra tình trạng bàn theo ngày/giờ đặt trước
+  checkAvailability: async (date, time) => {
+    const response = await api.get('/tables/availability', { params: { date, time } });
+    return response;
+  },
+  
   create: async (data) => {
     const response = await api.post('/tables', data);
     return response;
@@ -21,3 +27,4 @@ export const TableService = {
     return response;
   }
 };
+

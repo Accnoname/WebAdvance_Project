@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import { Ticket, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { VoucherService } from '../services/voucher.service';
 import formatCurrency from '../utils/formatCurrency';
@@ -8,6 +9,7 @@ const VoucherSelectorModal = ({ isOpen, onClose, subTotal, onApply }) => {
   const [loading, setLoading] = useState(true);
   const [manualCode, setManualCode] = useState('');
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     if (isOpen) {

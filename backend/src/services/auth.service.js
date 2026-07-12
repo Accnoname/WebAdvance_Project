@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const UserRepository = require('../repositories/user.repository');
 const User = require('../models/User.model');
 const { hashPassword, comparePassword } = require('../utils/hash.util');
@@ -111,4 +113,69 @@ const changePassword = async (userId, { oldPassword, newPassword }) => {
   return { success: true };
 };
 
-module.exports = { register, login, updateProfile, changePassword };
+// Gửi OTP quên mật khẩu — tạo token 6 số, hết hạn sau 15 phút
+const forgotPassword = async (email) => {
+  const user = await new Promise((resolve, reject) => {
+    UserRepository.findByEmail(email, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
+
+  // Trả về thành công dù email không tồn tại (bảo mật — không lộ email)
+  if (!user) {
+    return { message: 'Nếu email tồn tại, mã OTP đã được gửi' };
+  }
+
+  // Tạo OTP 6 số
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Tạo token ngẫu nhiên an toàn để dùng làm reset token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // Lưu token (hash) và OTP vào DB, hết hạn sau 15 phút
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+  await user.save();
+
+  // TODO: Gửi email thật — hiện tại log ra console để test
+  console.log(`\n🔑 [FORGOT PASSWORD] Email: ${email} | OTP: ${otp} | Token: ${resetToken}\n`);
+
+  // Trả về OTP và token cho client (chỉ dùng khi chưa có email server)
+  // Khi có email server: chỉ trả về { message } và gửi email
+  return {
+    message: 'Mã OTP đã được gửi đến email của bạn',
+    otp,          // ⚠️ Chỉ trả về để test — xóa khi production
+    resetToken,   // Dùng để xác thực bước đặt lại mật khẩu
+  };
+};
+
+// Đặt lại mật khẩu bằng OTP token
+const resetPassword = async (resetToken, newPassword) => {
+  if (!resetToken || !newPassword) {
+    throw new AppError('Token và mật khẩu mới không được để trống', 400);
+  }
+  if (newPassword.length < 6) {
+    throw new AppError('Mật khẩu mới phải từ 6 ký tự trở lên', 400);
+  }
+
+  const user = await new Promise((resolve, reject) => {
+    UserRepository.findByResetToken(resetToken, (err, doc) => {
+      if (err) return reject(err);
+      resolve(doc);
+    });
+  });
+
+  if (!user) {
+    throw new AppError('Token không hợp lệ hoặc đã hết hạn', 400);
+  }
+
+  // Hash và lưu mật khẩu mới, xóa token
+  user.password = await hashPassword(newPassword);
+  user.resetPasswordToken = null;
+  user.resetPasswordExpires = null;
+  await user.save();
+
+  return { message: 'Đặt lại mật khẩu thành công' };
+};
+
+module.exports = { register, login, updateProfile, changePassword, forgotPassword, resetPassword };

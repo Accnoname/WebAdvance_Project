@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
   password:  { type: String, required: true, minlength: 6 },
   role:      { type: String, enum: ['quan_ly', 'nhan_vien', 'khach_hang'], default: 'khach_hang' },
   avatar:    { type: String, default: null },
-  isActive:  { type: Boolean, default: true }
+  isActive:              { type: Boolean, default: true },
+  resetPasswordToken:    { type: String, default: null },
+  resetPasswordExpires:  { type: Date, default: null }
 }, { timestamps: true });
 
 // Loại bỏ password khi trả về JSON
