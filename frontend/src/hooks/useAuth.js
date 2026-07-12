@@ -28,10 +28,17 @@ const useAuth = () => {
   };
 
   const logout = () => {
+    const userRole = user?.role;
     storeLogout();
     useCartStore.getState().clearLocalCart(); // Xóa giỏ hàng trên UI, không xóa DB
     toast.success('Đã đăng xuất');
-    navigate('/');
+    
+    // Nếu là nhân viên hoặc quản lý thì chuyển về login để tiện đăng nhập phiên khác, khách hàng thì về trang chủ
+    if (userRole === 'nhan_vien' || userRole === 'quan_ly') {
+      navigate('/login');
+    } else {
+      navigate('/');
+    }
   };
 
   return { user, token, login, register, logout, isAuthenticated: !!token };

@@ -10,4 +10,8 @@ router.put('/profile', authenticate, AuthController.updateProfile);
 router.put('/change-password', authenticate, AuthController.changePassword);
 router.post('/create-staff', authenticate, authorizeRole('quan_ly'), AuthController.register);
 
+// Quên mật khẩu — không cần authenticate
+router.post('/forgot-password', AuthController.forgotPassword);
+router.post('/reset-password', AuthController.resetPassword);
+
 module.exports = router;

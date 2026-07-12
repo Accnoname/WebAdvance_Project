@@ -79,7 +79,7 @@ const LoginPage = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-semibold text-stone-700 block">Mật khẩu</label>
-                <a href="#" className="text-xs font-medium text-primary-600 hover:text-primary-700">Quên mật khẩu?</a>
+                <Link to="/forgot-password" className="text-xs font-medium text-primary-600 hover:text-primary-700">Quên mật khẩu?</Link>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

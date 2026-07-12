@@ -8,6 +8,17 @@ const getAll = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const getAvailability = async (req, res, next) => {
+  try {
+    const { date, time } = req.query;
+    if (!date || !time) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông số date và time' });
+    }
+    const data = await TableService.checkAvailability(date, time);
+    res.status(200).json(sendSuccess('Tình trạng bàn', data));
+  } catch (error) { next(error); }
+};
+
 const create = async (req, res, next) => {
   try {
     const data = await TableService.create(req.body);
@@ -29,4 +40,4 @@ const deleteTable = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { getAll, create, updateStatus, deleteTable };
+module.exports = { getAll, getAvailability, create, updateStatus, deleteTable };

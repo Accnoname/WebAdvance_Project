@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { CartService } from '../services/cart.service';
+import { VoucherService } from '../services/voucher.service';
+import toast from 'react-hot-toast';
 
 export const useCartStore = create((set, get) => ({
   items: [],
@@ -8,6 +10,10 @@ export const useCartStore = create((set, get) => ({
   deliveryAddress: '',
   deliveryPhone: '',
   loading: false,
+  
+  // Voucher states
+  voucherCode: null,
+  discountAmount: 0,
 
   fetchCart: async () => {
     set({ loading: true });
@@ -78,6 +84,11 @@ export const useCartStore = create((set, get) => ({
     }
 
     set({ items: newItems });
+    // Nếu giỏ hàng thay đổi, xóa voucher để người dùng nhập lại (tránh sai lệch số liệu)
+    if (get().voucherCode) {
+      get().removeVoucher();
+      toast('Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá', { icon: '⚠️' });
+    }
     get().syncCart();
   },
 
@@ -87,6 +98,10 @@ export const useCartStore = create((set, get) => ({
       (i) => !(i.menuItem._id === menuItemId && i.note === note)
     );
     set({ items: newItems });
+    if (get().voucherCode) {
+      get().removeVoucher();
+      toast('Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá', { icon: '⚠️' });
+    }
     get().syncCart();
   },
 
@@ -105,6 +120,10 @@ export const useCartStore = create((set, get) => ({
       );
     }
     set({ items: newItems });
+    if (get().voucherCode) {
+      get().removeVoucher();
+      toast('Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá', { icon: '⚠️' });
+    }
     get().syncCart();
   },
 
@@ -148,10 +167,10 @@ export const useCartStore = create((set, get) => ({
   clearCart: async () => {
     try {
       await CartService.clearCart();
-      set({ items: [] });
+      set({ items: [], voucherCode: null, discountAmount: 0 });
     } catch (error) {
       console.error('Lỗi khi xóa giỏ hàng:', error);
-      set({ items: [] });
+      set({ items: [], voucherCode: null, discountAmount: 0 });
     }
   },
 
@@ -162,13 +181,46 @@ export const useCartStore = create((set, get) => ({
       tableId: null,
       orderType: 'tai_ban',
       deliveryAddress: '',
-      deliveryPhone: ''
+      deliveryPhone: '',
+      voucherCode: null,
+      discountAmount: 0
     });
   },
 
   getTotalAmount: () =>
     get().items.reduce((sum, item) => sum + item.price * item.quantity, 0),
 
+  getFinalAmount: () => {
+    const subTotal = get().getTotalAmount();
+    const final = subTotal - get().discountAmount;
+    return final > 0 ? final : 0;
+  },
+
   getTotalItems: () =>
     get().items.reduce((sum, item) => sum + item.quantity, 0),
+
+  applyVoucher: async (code) => {
+    const subTotal = get().getTotalAmount();
+    if (subTotal === 0) {
+      throw new Error('Giỏ hàng trống');
+    }
+    
+    try {
+      const res = await VoucherService.validate(code, subTotal);
+      if (res.success) {
+        set({
+          voucherCode: res.data.voucherCode,
+          discountAmount: res.data.discountAmount
+        });
+        return res;
+      }
+    } catch (error) {
+      set({ voucherCode: null, discountAmount: 0 });
+      throw error;
+    }
+  },
+
+  removeVoucher: () => {
+    set({ voucherCode: null, discountAmount: 0 });
+  }
 }));

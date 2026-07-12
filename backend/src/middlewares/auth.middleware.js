@@ -1,7 +1,7 @@
 const { verifyToken } = require('../utils/jwt.util');
 const { sendError } = require('../utils/response.util');
 
-// Middleware xác thực JWT — arrow function
+// Middleware xác thực JWT — bắt buộc
 const authenticate = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -18,6 +18,22 @@ const authenticate = (req, res, next) => {
   }
 };
 
+// Middleware xác thực JWT — không bắt buộc (dành cho guest order)
+const optionalAuthenticate = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = verifyToken(token);
+      req.user = decoded;
+    }
+    next();
+  } catch (error) {
+    // Không làm gì, coi như guest
+    next();
+  }
+};
+
 // HOF — Higher-Order Function tạo middleware phân quyền động
 const authorizeRole = (...roles) => (req, res, next) => {
   if (!req.user || !roles.includes(req.user.role)) {
@@ -26,4 +42,4 @@ const authorizeRole = (...roles) => (req, res, next) => {
   next();
 };
 
-module.exports = { authenticate, authorizeRole };
+module.exports = { authenticate, optionalAuthenticate, authorizeRole };

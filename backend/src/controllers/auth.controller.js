@@ -35,4 +35,19 @@ const changePassword = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { register, login, getMe, updateProfile, changePassword };
+const forgotPassword = async (req, res, next) => {
+  try {
+    const result = await AuthService.forgotPassword(req.body.email);
+    res.status(200).json(sendSuccess('Yêu cầu đặt lại mật khẩu', result));
+  } catch (error) { next(error); }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    const result = await AuthService.resetPassword(resetToken, newPassword);
+    res.status(200).json(sendSuccess('Đặt lại mật khẩu thành công', result));
+  } catch (error) { next(error); }
+};
+
+module.exports = { register, login, getMe, updateProfile, changePassword, forgotPassword, resetPassword };
