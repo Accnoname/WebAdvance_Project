@@ -6,7 +6,7 @@ export const ReportService = {
   getRevenue: async (params = {}) => {
     try {
       const response = await api.get(`${API_URL}/revenue`, { params });
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -15,7 +15,7 @@ export const ReportService = {
   getBestSellers: async (params = {}) => {
     try {
       const response = await api.get(`${API_URL}/best-sellers`, { params });
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
@@ -24,7 +24,7 @@ export const ReportService = {
   getDashboardStats: async () => {
     try {
       const response = await api.get(`${API_URL}/dashboard`);
-      return response.data;
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }

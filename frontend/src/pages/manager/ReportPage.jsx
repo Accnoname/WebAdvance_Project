@@ -31,7 +31,7 @@ const ReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [summary, setSummary] = useState({ total: 0, orders: 0, aov: 0 });
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterStatus, setFilterStatus] = useState('hoan_thanh');
   const [exporting, setExporting] = useState(false);
   
   const fetchOrders = useCallback(async () => {
@@ -208,10 +208,7 @@ const ReportPage = () => {
                 setPagination(p => ({ ...p, page: 1 }));
               }}
             >
-              <option value="">Tất cả trạng thái</option>
-              <option value="hoan_thanh">Đã hoàn thành</option>
-              <option value="da_huy">Đã hủy</option>
-              <option value="dang_xu_ly">Đang xử lý</option>
+              <option value="hoan_thanh">Chỉ đơn hoàn thành</option>
             </select>
           </div>
         </div>
