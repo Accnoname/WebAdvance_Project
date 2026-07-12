@@ -18,8 +18,8 @@ const startServer = async () => {
     initSocket(server);
 
     server.listen(PORT, () => {
-      console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-      console.log(`📁 Môi trường: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Server đang chạy tại http://localhost:${PORT}`);
+      console.log(`Môi trường: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
     console.error('Lỗi khởi động server:', error);

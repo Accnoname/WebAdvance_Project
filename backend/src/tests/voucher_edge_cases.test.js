@@ -208,7 +208,7 @@ const runEdgeCaseTests = async () => {
     }
 
     // Test 5b: discountValue is null
-    console.log('\n- Test 5b: discountValue is null (discountType = "fixed")');
+    console.log('\n- Test 5b: discountValue is null (discountType ='fixed")');
     await mongoose.connection.db.collection('vouchers').insertOne({
       code: 'NULL_VAL',
       discountType: 'fixed',

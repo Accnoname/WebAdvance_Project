@@ -6,7 +6,7 @@ const Table = require('../models/Table.model');
 const Voucher = require('../models/Voucher.model');
 const { getIO } = require('../config/socket');
 
-// ─── 1. Tạo thanh toán offline (tiền mặt) — Khách yêu cầu, Staff thu tiền ───
+// 1. Tạo thanh toán offline (tiền mặt) — Khách yêu cầu, Staff thu tiền
 const createOfflinePayment = async (data) => {
   const { orderId, method, processedBy } = data;
 
@@ -75,7 +75,7 @@ const createOfflinePayment = async (data) => {
   return payment;
 };
 
-// ─── 1b. Staff xác nhận đã thu tiền mặt → UPDATE DB + giải phóng bàn ─────────
+// 1b. Staff xác nhận đã thu tiền mặt → UPDATE DB + giải phóng bàn
 const confirmOfflinePayment = async (orderId, processedBy, method = 'tien_mat') => {
   const order = await Order.findById(orderId).populate('table');
   if (!order) throw new AppError('Không tìm thấy đơn hàng', 404);
@@ -148,7 +148,7 @@ const confirmOfflinePayment = async (orderId, processedBy, method = 'tien_mat') 
   return updatedPayment;
 };
 
-// ─── 2. Tạo URL thanh toán VNPay ─────────────────────────────────────────────
+// 2. Tạo URL thanh toán VNPay
 const createVNPayPayment = async (orderId, ipAddr) => {
   const order = await Order.findById(orderId);
   if (!order) throw new AppError('Không tìm thấy đơn hàng', 404);
@@ -196,7 +196,7 @@ const createVNPayPayment = async (orderId, ipAddr) => {
   return { vnpayUrl, paymentId: payment._id };
 };
 
-// ─── 3. Return URL từ VNPay (chỉ redirect, KHÔNG update DB) ──────────────────
+// 3. Return URL từ VNPay (chỉ redirect, KHÔNG update DB)
 const handleVNPayReturn = (vnpayData) => {
   const isValidSignature = verifyVNPaySignature(vnpayData);
   const responseCode = vnpayData.vnp_ResponseCode;
@@ -212,7 +212,7 @@ const handleVNPayReturn = (vnpayData) => {
   };
 };
 
-// ─── 4. IPN từ VNPay (nơi DUY NHẤT update DB) ────────────────────────────────
+// 4. IPN từ VNPay (nơi DUY NHẤT update DB)
 const handleVNPayIPN = async (vnpayData) => {
   // Bước 1: Xác minh chữ ký HMAC-SHA512
   const isValidSignature = verifyVNPaySignature(vnpayData);

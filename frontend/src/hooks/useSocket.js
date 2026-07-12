@@ -14,7 +14,7 @@ const useSocket = (room = null) => {
     });
 
     socketRef.current.on('connect', () => {
-      console.log('🔗 Đã kết nối Socket:', socketRef.current.id);
+      console.log('Đã kết nối Socket:', socketRef.current.id);
       
       if (room) {
         if (room.startsWith('table:')) {
@@ -27,7 +27,7 @@ const useSocket = (room = null) => {
     });
 
     socketRef.current.on('disconnect', () => {
-      console.log('🔴 Đã ngắt kết nối Socket');
+      console.log('Đã ngắt kết nối Socket');
     });
 
     return () => {

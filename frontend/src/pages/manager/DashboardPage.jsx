@@ -18,8 +18,8 @@ import { ReportService } from '../../services/report.service';
 import { OrderService } from '../../services/order.service';
 import useSocket from '../../hooks/useSocket';
 
-// ─── MOCK DATA ────────────────────────────────────────────────
-// ─── ALERTS DATA ────────────────────────────────────────────────
+// MOCK DATA
+// ALERTS DATA
 
 const INITIAL_ALERTS = [
   { id: 1, level: 'critical', icon: Timer,   title: 'Bếp chậm — Ticket quá lâu', desc: 'Bàn 05: Steak Wagyu chờ 22 phút chưa xong', time: '2 phút trước' },
@@ -37,7 +37,7 @@ const DATE_RANGE_OPTIONS = [
   { key: 'custom',  label: 'Tùy chỉnh' },
 ];
 
-// ─── SUB COMPONENTS ───────────────────────────────────────────
+// SUB COMPONENTS
 const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass }) => (
   <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200">
     <div className="flex items-start justify-between mb-4">
@@ -96,7 +96,7 @@ const AlertItem = ({ alert, onDismiss }) => {
   );
 };
 
-// ─── MAIN PAGE ────────────────────────────────────────────────
+// MAIN PAGE
 const DashboardPage = () => {
   useDocumentTitle('Dashboard Quản Lý');
   const today = new Date().toISOString().split('T')[0];
@@ -108,7 +108,7 @@ const DashboardPage = () => {
   const [alerts, setAlerts]                 = useState(INITIAL_ALERTS);
   const [showAlertPanel, setShowAlertPanel] = useState(true);
 
-  // ── Table View State (view-only) ──
+  // Table View State (view-only)
   const [tables, setTables]               = useState([]);
   const [tablesLoading, setTablesLoading] = useState(true);
 
@@ -119,7 +119,7 @@ const DashboardPage = () => {
     dong:         { label: 'Đóng cửa',     dotColor: 'bg-slate-400',  badge: 'bg-slate-100 text-slate-600 border-slate-200',      icon: Ban },
   };
 
-  // ── States Data ──
+  // States Data
   const [chartData, setChartData] = useState([]);
   const [stats, setStats] = useState({ total: 0, orders: 0, aov: 0 });
   const [topItems, setTopItems] = useState([]);

@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, Loader2, Home, ShoppingBag, ArrowRight, Receipt } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 
-// ─── Mã phản hồi VNPay → mô tả tiếng Việt ───────────────────────────────────
+// Mã phản hồi VNPay → mô tả tiếng Việt
 const VNPAY_RESPONSE_MESSAGES = {
   '00': 'Giao dịch thành công',
   '07': 'Giao dịch bị nghi ngờ (liên quan đến lừa đảo, giao dịch bất thường)',

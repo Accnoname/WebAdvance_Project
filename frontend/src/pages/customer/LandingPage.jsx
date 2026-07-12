@@ -4,7 +4,7 @@ import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { ArrowRight, Star, Clock, MapPin, Phone, Leaf, Flame, Snowflake, Sun, ChevronRight } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
-// ─── DỮ LIỆU MÙA ─────────────────────────────────────────────
+// DỮ LIỆU MÙA
 const ALL_SEASONS = [
   {
     key: 'xuan', label: 'Mùa Xuân', months: [1, 2, 3],

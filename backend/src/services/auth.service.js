@@ -138,13 +138,13 @@ const forgotPassword = async (email) => {
   await user.save();
 
   // TODO: Gửi email thật — hiện tại log ra console để test
-  console.log(`\n🔑 [FORGOT PASSWORD] Email: ${email} | OTP: ${otp} | Token: ${resetToken}\n`);
+  console.log(`\n [FORGOT PASSWORD] Email: ${email} | OTP: ${otp} | Token: ${resetToken}\n`);
 
   // Trả về OTP và token cho client (chỉ dùng khi chưa có email server)
   // Khi có email server: chỉ trả về { message } và gửi email
   return {
     message: 'Mã OTP đã được gửi đến email của bạn',
-    otp,          // ⚠️ Chỉ trả về để test — xóa khi production
+    otp,          // Chỉ trả về để test — xóa khi production
     resetToken,   // Dùng để xác thực bước đặt lại mật khẩu
   };
 };

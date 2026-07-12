@@ -21,7 +21,7 @@ const ForgotPasswordPage = () => {
       navigate('/reset-password', {
         state: {
           resetToken: result?.resetToken,
-          // ⚠️ chỉ dùng khi test — otp hiển thị trực tiếp
+          // chỉ dùng khi test — otp hiển thị trực tiếp
           otp: result?.otp,
         }
       });

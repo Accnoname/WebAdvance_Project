@@ -10,7 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
-// ─── Dữ liệu khu vực ngồi ──────────────────────────────────────────────────
+// Dữ liệu khu vực ngồi
 const AREAS = [
   {
     id: 'window',
@@ -38,7 +38,7 @@ const AREAS = [
   },
 ];
 
-// ─── Yêu cầu đặc biệt ──────────────────────────────────────────────────────
+// Yêu cầu đặc biệt
 const SPECIAL_REQUESTS = [
   { id: 'birthday', label: 'Tiệc Sinh Nhật', icon: Cake },
   { id: 'anniversary', label: 'Kỷ Niệm Ngày Cưới', icon: Heart },
@@ -50,7 +50,7 @@ const SPECIAL_REQUESTS = [
   { id: 'quiet', label: 'Bàn Góc Yên Tĩnh', icon: VolumeX },
 ];
 
-// ─── Step Indicator ─────────────────────────────────────────────────────────
+// Step Indicator
 const StepIndicator = ({ step, currentStep, label }) => {
   const isCompleted = currentStep > step;
   const isActive = currentStep === step;
@@ -75,7 +75,7 @@ const StepIndicator = ({ step, currentStep, label }) => {
   );
 };
 
-// ─── Main Component ─────────────────────────────────────────────────────────
+// Main Component
 const ReservationPage = () => {
   useDocumentTitle('Đặt Bàn Trực Tuyến');
   const [currentStep, setCurrentStep] = useState(1);
@@ -174,7 +174,7 @@ const ReservationPage = () => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  // ─── Success Screen ────────────────────────────────────────────────────────
+  // Success Screen
   if (isSuccess) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-20 animate-fade-in-up text-center bg-[#251b0f] rounded-3xl border border-stone-850 shadow-2xl shadow-stone-950/50 mt-8">
