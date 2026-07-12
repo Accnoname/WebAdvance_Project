@@ -163,9 +163,7 @@ const MyOrdersPage = () => {
                   </span>
                 </div>
                 <div className="text-xs text-[#d4c3a3] flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 font-medium">
-                  {order.orderType === 'tai_ban' && <span>Bàn số: {order.table?.tableNumber || '?'}</span>}
-                  {order.orderType === 'mang_ve' && <span>Đơn mang về</span>}
-                  {order.orderType === 'giao_hang' && <span>Giao đến: {order.deliveryAddress}</span>}
+                  <span>Bàn số: {order.table?.tableNumber || '?'}</span>
                   <span>•</span>
                   <span>{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
                 </div>
@@ -182,7 +180,8 @@ const MyOrdersPage = () => {
             {/* Items List */}
             <div className="space-y-5">
               {order.items.map((item, index) => {
-                const config = STATUS_CONFIG[item.status] || STATUS_CONFIG.cho_xac_nhan;
+                                const displayStatus = order.orderStatus === 'hoan_thanh' ? 'hoan_thanh' : item.status;
+                const config = STATUS_CONFIG[displayStatus] || STATUS_CONFIG.cho_xac_nhan;
                 const Icon = config.icon;
 
                 return (
@@ -204,10 +203,12 @@ const MyOrdersPage = () => {
                           </div>
                         </div>
                         
-                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${config.bg} ${config.color} transition-colors duration-500`}>
-                          <Icon className={`w-3.5 h-3.5 ${item.status === 'dang_che_bien' ? 'animate-bounce' : ''}`} />
-                          {config.label}
-                        </div>
+                        {order.orderStatus !== 'da_huy' && (
+                          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${config.bg} ${config.color} transition-colors duration-500`}>
+                            <Icon className={`w-3.5 h-3.5 ${displayStatus === 'dang_che_bien' ? 'animate-bounce' : ''}`} />
+                            {config.label}
+                          </div>
+                        )}
                       </div>
                       
                       {item.note && (
@@ -217,17 +218,19 @@ const MyOrdersPage = () => {
                       )}
 
                       {/* Timeline progress bar */}
-                      <div className="mt-3 flex gap-1 h-1 w-full bg-stone-900 rounded-full overflow-hidden">
-                        <div className={`h-full transition-all duration-1000 ${
-                          ['cho_xac_nhan', 'dang_che_bien', 'hoan_thanh'].includes(item.status) ? 'bg-rose-500 w-1/3' : 'w-0'
-                        }`} />
-                        <div className={`h-full transition-all duration-1000 ${
-                          ['dang_che_bien', 'hoan_thanh'].includes(item.status) ? 'bg-amber-500 w-1/3' : 'w-0'
-                        }`} />
-                        <div className={`h-full transition-all duration-1000 ${
-                          item.status === 'hoan_thanh' ? 'bg-[#d4a85a] w-1/3' : 'w-0'
-                        }`} />
-                      </div>
+                      {order.orderStatus !== 'da_huy' && (
+                        <div className="mt-3 flex gap-1 h-1 w-full bg-stone-900 rounded-full overflow-hidden">
+                          <div className={`h-full transition-all duration-1000 ${
+                            ['cho_xac_nhan', 'dang_che_bien', 'hoan_thanh'].includes(displayStatus) ? 'bg-rose-500 w-1/3' : 'w-0'
+                          }`} />
+                          <div className={`h-full transition-all duration-1000 ${
+                            ['dang_che_bien', 'hoan_thanh'].includes(displayStatus) ? 'bg-amber-500 w-1/3' : 'w-0'
+                          }`} />
+                          <div className={`h-full transition-all duration-1000 ${
+                            displayStatus === 'hoan_thanh' ? 'bg-[#d4a85a] w-1/3' : 'w-0'
+                          }`} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -262,44 +265,44 @@ const MyOrdersPage = () => {
                     setSelectedOrderForService(order);
                     setShowServiceModal(true);
                   }}
-                  className="flex-1 py-3 bg-[#1a1208] hover:bg-[#332514] text-[#d4c3a3] border border-stone-800 rounded-xl font-bold transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-[#1a1208] hover:bg-[#332514] text-[#d4c3a3] border border-stone-800 rounded-xl font-bold transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2"
                 >
                   <AlertCircle className="w-4 h-4 text-[#d4a85a]" />
-                  Gọi Nhân Viên
-                </button>
-                <button
-                  onClick={() => {
-                    if (socket) {
-                      socket.emit('table:call-staff', {
-                        tableNumber: order.table?.tableNumber,
-                        orderId: order._id,
-                        reason: 'Thanh toán'
-                      });
-                      toast.success('Đã gửi yêu cầu thanh toán cho nhân viên phục vụ!');
-                    }
-                  }}
-                  className="flex-1 py-3 bg-[#d4a85a] hover:bg-[#c2984a] text-[#1a1208] rounded-xl font-bold shadow-lg shadow-amber-500/10 transition-all active:scale-95 text-xs uppercase tracking-wider flex items-center justify-center gap-2"
-                >
-                  💳 Yêu cầu thanh toán
+                  Gọi Nhân Viên Hỗ Trợ
                 </button>
               </div>
-            ) : (
-              // Nút đánh giá nếu đơn đã xong nhưng chưa review
-              order.orderStatus === 'hoan_thanh' && (!order.review || !order.review.rating) && (
-                <div className="mt-6 pt-5 border-t border-stone-800/60">
+            ) : order.orderStatus === 'hoan_thanh' ? (
+              <div className="mt-6 pt-5 border-t border-stone-800/60 space-y-4">
+                {/* Khu vực Thanh toán */}
+                {order.isPaid ? (
+                  <div className="w-full py-3 bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 rounded-xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-widest">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Đã thanh toán thành công
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/payment/${order._id}`)}
+                    className="w-full py-3.5 bg-[#d4a85a] hover:bg-[#c2984a] text-[#1a1208] rounded-xl font-bold shadow-lg shadow-amber-500/10 active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    💳 Thanh toán hóa đơn
+                  </button>
+                )}
+
+                {/* Nút đánh giá nếu đơn đã xong nhưng chưa review */}
+                {(!order.review || !order.review.rating) && (
                   <button
                     onClick={() => {
                       setSelectedOrderForReview(order);
                       setShowReviewModal(true);
                     }}
-                    className="w-full py-3.5 bg-gradient-to-r from-amber-550 to-[#d4a85a]/90 hover:from-amber-600 hover:to-[#d4a85a] text-[#1a1208] rounded-xl font-bold shadow-md shadow-[#d4a85a]/10 active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-[#1a1208] hover:bg-[#332514] text-[#d4c3a3] border border-stone-800 rounded-xl font-bold transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2"
                   >
-                    <Star className="w-4 h-4 fill-current" />
-                    Đánh giá bữa ăn & Ghi chú đóng góp ý kiến
+                    <Star className="w-4 h-4 text-[#d4a85a]" />
+                    Đánh giá bữa ăn & Ghi chú
                   </button>
-                </div>
-              )
-            )}
+                )}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

@@ -5,8 +5,18 @@ const querystring = require('qs');
  * Sắp xếp các key của object theo thứ tự alphabet (yêu cầu của VNPay)
  */
 const sortObject = (obj) => {
-  const sorted = {};
-  Object.keys(obj).sort().forEach(key => { sorted[key] = obj[key]; });
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
   return sorted;
 };
 
@@ -38,7 +48,7 @@ const createVNPayUrl = (orderInfo) => {
     vnp_Version:    '2.1.0',
     vnp_Command:    'pay',
     vnp_TmnCode:    process.env.VNPAY_TMN_CODE,
-    vnp_Amount:     orderInfo.amount * 100, // VNPay yêu cầu đơn vị là 1/100 VND
+    vnp_Amount:     Math.round(orderInfo.amount * 100), // VNPay yêu cầu số nguyên (1/100 VND)
     vnp_CreateDate: formatVNPayDate(now),
     vnp_ExpireDate: formatVNPayDate(expireDate),
     vnp_CurrCode:   'VND',

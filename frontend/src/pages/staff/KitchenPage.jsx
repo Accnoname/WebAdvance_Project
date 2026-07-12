@@ -46,7 +46,10 @@ const KitchenPage = () => {
     if (!socket) return;
 
     socket.on('order:new', (newOrder) => {
-      setOrders((prev) => [newOrder, ...prev]);
+      setOrders((prev) => {
+        if (prev.some((o) => o._id === newOrder._id)) return prev;
+        return [newOrder, ...prev];
+      });
       toast.custom((t) => (
         <div className="bg-stone-900 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-4 border border-stone-700">
           <Bell className="w-6 h-6 text-yellow-400 animate-bounce" />

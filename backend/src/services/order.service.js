@@ -60,7 +60,6 @@ const OrderService = {
     if (query.orderStatus) {
       filter.orderStatus = { $in: query.orderStatus.split(',') };
     }
-    if (query.orderType)   filter.orderType   = query.orderType;
     if (query.table)       filter.table       = query.table;
 
     const page  = parseInt(query.page)  || 1;
@@ -116,18 +115,17 @@ const OrderService = {
   },
 
   create: async (data, user) => {
-    // Validate table if orderType is 'tai_ban'
+    // Validate table
     let table = null;
-    if (data.orderType === 'tai_ban' || data.tableId) {
+    if (data.tableId) {
       table = await Table.findById(data.tableId);
       if (!table) throw new AppError('Bàn không tồn tại', 404);
       // [C4] Chặn đặt đơn khi bàn đang có khách hoặc đóng cửa
-      if (table.status === 'dang_phuc_vu') {
-        throw new AppError(`Bàn ${table.tableNumber} đang có khách, không thể đặt thêm`, 400);
+      if (['dang_phuc_vu', 'dong'].includes(table.status)) {
+        throw new AppError('Bàn này hiện không thể đặt', 400);
       }
-      if (table.status === 'dong') {
-        throw new AppError(`Bàn ${table.tableNumber} đang đóng cửa`, 400);
-      }
+    } else {
+      throw new AppError('Vui lòng chọn bàn!', 400);
     }
 
     // Get prices and calculate total
@@ -164,10 +162,7 @@ const OrderService = {
     }
 
     const order = new Order({
-      orderType: data.orderType || 'tai_ban',
       table: table ? table._id : null,
-      deliveryAddress: data.deliveryAddress || null,
-      deliveryPhone: data.deliveryPhone || null,
       customer: user?.role === 'khach_hang' ? user._id : null,
       orderedBy: user ? user._id : null,
       items: processedItems,

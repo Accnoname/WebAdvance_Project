@@ -1,4 +1,5 @@
 const MenuItemRepository = require('../repositories/menuItem.repository');
+const MenuItem = require('../models/MenuItem.model');
 const { AppError } = require('../middlewares/error.middleware');
 const Order = require('../models/Order.model');
 const fs = require('fs');
@@ -50,6 +51,11 @@ const getById = async (id) => {
 };
 
 const create = async (data, file) => {
+  const existing = await MenuItem.findOne({ name: data.name });
+  if (existing) {
+    throw new AppError('Tên món đã tồn tại', 409);
+  }
+
   const menuItemData = { ...data };
   if (file) {
     menuItemData.image = `/uploads/menu/${file.filename}`;

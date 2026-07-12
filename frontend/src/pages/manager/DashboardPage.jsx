@@ -16,6 +16,7 @@ import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { TableService } from '../../services/table.service';
 import { ReportService } from '../../services/report.service';
 import { OrderService } from '../../services/order.service';
+import useSocket from '../../hooks/useSocket';
 
 // ─── MOCK DATA ────────────────────────────────────────────────
 // ─── ALERTS DATA ────────────────────────────────────────────────
@@ -172,7 +173,7 @@ const DashboardPage = () => {
           const timeDiff = Math.floor((new Date() - new Date(o.createdAt)) / 60000);
           return {
             id: `#${o._id.slice(-4).toUpperCase()}`,
-            table: o.table?.tableNumber ? `Bàn ${o.table.tableNumber}` : 'Mang đi',
+            table: o.table?.tableNumber ? `Bàn ${o.table.tableNumber}` : 'Chưa có bàn',
             time: `${timeDiff} phút`,
             status: o.orderStatus === 'moi' ? 'cho_nau' : 'dang_nau',
             amount: o.totalAmount
@@ -191,6 +192,23 @@ const DashboardPage = () => {
     const interval = setInterval(fetchReportData, 30000); // Tự động cập nhật sau 30s
     return () => clearInterval(interval);
   }, [fetchTables, fetchReportData]);
+
+  const socket = useSocket('manager');
+  useEffect(() => {
+    if (!socket) return;
+    const handleUpdate = () => {
+      fetchTables();
+      fetchReportData();
+    };
+    socket.on('order:new', handleUpdate);
+    socket.on('order:status-changed', handleUpdate);
+    socket.on('table:status-changed', handleUpdate);
+    return () => {
+      socket.off('order:new', handleUpdate);
+      socket.off('order:status-changed', handleUpdate);
+      socket.off('table:status-changed', handleUpdate);
+    };
+  }, [socket, fetchTables, fetchReportData]);
 
   const dismissAlert = (id) => setAlerts(prev => prev.filter(a => a.id !== id));
 

@@ -14,13 +14,10 @@ const getCart = async (req, res, next) => {
 // Cập nhật toàn bộ giỏ hàng
 const syncCart = async (req, res, next) => {
   try {
-    const { items, tableId, orderType, deliveryAddress, deliveryPhone } = req.body;
+    const { items, tableId } = req.body;
     const updatedCart = await CartService.updateCartData(req.user._id, {
       items,
-      tableId,
-      orderType,
-      deliveryAddress,
-      deliveryPhone
+      tableId
     });
     res.status(200).json(sendSuccess('Đồng bộ giỏ hàng thành công', updatedCart));
   } catch (error) {
