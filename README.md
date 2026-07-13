@@ -1,44 +1,46 @@
-# 🍽️ Restaurant Management System
+# 🍽️ Restaurant Management System — All-in-One Integrated F&B Platform
 
-> A comprehensive Restaurant Management System developed as a final school project. It features real-time order tracking, role-based access control, and integrated online payments to deliver a complete dining management solution.
+> A comprehensive, modern Restaurant Management System developed as a final academic project. It features real-time order tracking, role-based access control, a full-fledged kitchen interface, and integrated online payments to deliver a complete dining management solution.
+
+![Restaurant Dashboard](https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=1200&h=400)
 
 ---
 
 ## ✨ Key Features
 
-- **🔐 Role-Based Access Control (RBAC):** Secure authentication via JWT for Customers, Staff, and Managers.
-- **⚡ Real-time Updates:** Instant order synchronization between customers and the kitchen using Socket.IO.
-- **📱 Digital Menu & QR Ordering:** Customers can scan QR codes at their table to view the menu and place orders directly.
-- **💳 Payment Integration:** Supports offline payments (cash/transfer) and online secure transactions via VNPay Sandbox.
-- **📊 Manager Dashboard:** Visualizes revenue, popular dishes, and table utilization using responsive charts (Recharts).
-- **🛡️ Data Security & Validation:** Request validation using Joi, secure password hashing with bcrypt, and comprehensive error handling.
+- **🔐 Role-Based Access Control (RBAC):** Secure, stateless authentication via JWT. Distinct access levels for Customers, Kitchen/Staff, and Managers.
+- **⚡ Real-time Updates:** Instant order synchronization between customer tables and the kitchen display using `Socket.IO`.
+- **📱 Digital Menu & QR Ordering:** Customers can view the menu, select tables, and place orders directly from their devices.
+- **💳 Payment Integration:** Supports offline payments (cash/transfer) and online secure transactions via **VNPay Sandbox** (with IPN Webhook support).
+- **📊 Executive Dashboard:** Visualizes revenue, popular dishes, and table utilization using responsive charts (`Recharts`).
+- **🛡️ Data Security & Validation:** Robust request validation using `Joi`, secure password hashing with `bcrypt`, and global error handling middleware.
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Backend
-- **Framework:** Node.js, Express.js
+### Backend (Monolithic API)
+- **Runtime & Framework:** Node.js, Express.js
 - **Database:** MongoDB (Mongoose ODM)
 - **Real-time:** Socket.IO
-- **Security & Auth:** JWT, bcryptjs, Express Rate Limit
+- **Security & Auth:** JWT, bcryptjs, Helmet, Express Rate Limit
 - **Uploads:** Multer (Local storage)
 
-### Frontend
+### Frontend (Single Page Application)
 - **Framework:** React 18, Vite
 - **Styling:** Tailwind CSS v3
-- **State Management:** Zustand
+- **State Management:** Zustand (Cart & Auth stores)
 - **Routing:** React Router v6
-- **Charts:** Recharts
-- **API Client:** Axios (with interceptors)
+- **Charts & UI:** Recharts, Lucide-React, React-hot-toast
+- **API Client:** Axios (with automatic token interceptors)
 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
-- Node.js (v18+)
-- MongoDB (Local or Atlas URL)
+- **Node.js** (v18+)
+- **MongoDB** (Local instance running on port 27017 or MongoDB Atlas URL)
 
 ### 2. Installation
 Clone the repository and install dependencies for both frontend and backend:
@@ -70,7 +72,7 @@ npm run dev
 - **Frontend App:** `http://localhost:5173`
 
 ### 5. Test Accounts
-For testing purposes, please refer to the [Test Accounts Documentation](docs/TEST_ACCOUNTS.md) for the default Email and Password combinations for each role (Manager, Staff, Customer).
+For testing purposes, please refer to the `docs/TEST_ACCOUNTS.md` for the default Email and Password combinations for each role (Manager, Staff, Customer).
 
 ---
 
@@ -78,26 +80,27 @@ For testing purposes, please refer to the [Test Accounts Documentation](docs/TES
 
 This repository uses a Monorepo structure, separating concerns cleanly between the API server and the Client UI.
 
-```
+```text
 restaurant-management/
-├── backend/            # Express API Server (MVC + Repository pattern)
+├── backend/            # Express API Server (MVC + Service + Repository pattern)
 │   ├── src/
-│   │   ├── controllers/
-│   │   ├── middlewares/
-│   │   ├── models/
-│   │   ├── repositories/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   └── sockets/
+│   │   ├── config/     # Database and Socket setups
+│   │   ├── controllers/# Request handlers & Response formatting
+│   │   ├── middlewares/# Auth, Validation, Error catching
+│   │   ├── models/     # Mongoose Schemas
+│   │   ├── repositories/# Data Access Layer (DAL)
+│   │   ├── routes/     # Express routers
+│   │   ├── services/   # Core Business Logic
+│   │   └── utils/      # Helpers (VNPay, JWT)
 │   └── uploads/        # Local image storage
 ├── frontend/           # React SPA
 │   ├── src/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── pages/
-│   │   ├── router/
-│   │   ├── services/
-│   │   └── store/
+│   │   ├── components/ # Reusable UI pieces
+│   │   ├── hooks/      # Custom React hooks (useSocket)
+│   │   ├── pages/      # Route components (Customer, Staff, Manager)
+│   │   ├── router/     # React Router config & Protected Routes
+│   │   ├── services/   # Axios API calls
+│   │   └── store/      # Zustand global state
 └── docs/               # Technical documentation
 ```
 
